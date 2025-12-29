@@ -1,0 +1,34 @@
+{
+  "hooks": [
+    {
+      "event": "Notification",
+      "matcher": ".*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "curl -s -X POST http://localhost:3847/api/send -H 'Content-Type: application/json' -d '{\"sessionId\": \"'\"$CLAUDE_SESSION_ID\"'\", \"event\": \"Notification\", \"message\": \"'\"$(echo $CLAUDE_NOTIFICATION | sed 's/\"/\\\\\"/g')\"'\"}'"
+        }
+      ]
+    },
+    {
+      "event": "Stop",
+      "matcher": ".*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "curl -s -X POST http://localhost:3847/api/send -H 'Content-Type: application/json' -d '{\"sessionId\": \"'\"$CLAUDE_SESSION_ID\"'\", \"event\": \"Stop\", \"message\": \"Session ended\"}'"
+        }
+      ]
+    },
+    {
+      "event": "PreToolUse",
+      "matcher": "Bash|Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "curl -s -X GET http://localhost:3847/api/session/$CLAUDE_SESSION_ID/enabled | grep -q '\"enabled\":true' || exit 0; curl -s -X POST http://localhost:3847/api/session -H 'Content-Type: application/json' -d '{\"sessionId\": \"'\"$CLAUDE_SESSION_ID\"'\", \"event\": \"PreToolUse\", \"prompt\": \"Tool: '\"$CLAUDE_TOOL_NAME\"' - Approve? (Y/N)\"}' > /dev/null; for i in $(seq 1 60); do RESP=$(curl -s http://localhost:3847/api/response/$CLAUDE_SESSION_ID); if echo \"$RESP\" | grep -q '\"response\"'; then ANSWER=$(echo \"$RESP\" | grep -o '\"response\":\"[^\"]*\"' | cut -d'\"' -f4); if echo \"$ANSWER\" | grep -qi '^y'; then exit 0; else echo '{\"decision\": \"block\", \"reason\": \"User denied via SMS\"}'; exit 0; fi; fi; sleep 5; done; echo '{\"decision\": \"block\", \"reason\": \"SMS approval timeout\"}'"
+        }
+      ]
+    }
+  ]
+}

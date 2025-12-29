@@ -1,0 +1,12 @@
+{
+  "name": "claude-sms",
+  "version": "0.1.0",
+  "description": "SMS notifications and bidirectional communication for Claude Code via Twilio",
+  "author": {
+    "name": "chris-bluera"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chris-bluera/claude-sms"
+  }
+}
