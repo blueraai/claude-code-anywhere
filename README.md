@@ -150,6 +150,33 @@ With session ID (multiple sessions):
 | `SMS_USER_PHONE` | Yes | Your mobile number |
 | `SMS_BRIDGE_URL` | No | Bridge server URL (default: localhost:3847) |
 | `SMS_BRIDGE_PORT` | No | Server port (default: 3847) |
+| `CLOUDFLARE_TUNNEL_ID` | No | Tunnel ID for persistent URL (see below) |
+| `CLOUDFLARE_TUNNEL_URL` | No | Your persistent tunnel URL |
+
+### Persistent Tunnel URL
+
+By default, the server creates a random tunnel URL each time it starts (e.g., `https://random-words.trycloudflare.com`). This requires updating your Twilio webhook URL after each restart.
+
+For a persistent URL that never changes:
+
+1. **Create a Cloudflare tunnel** (one-time):
+   ```bash
+   # Install cloudflared if not already installed
+   # Then authenticate and create tunnel
+   cloudflared tunnel login
+   cloudflared tunnel create claude-sms
+   ```
+
+2. **Configure DNS** in Cloudflare dashboard:
+   - Add a CNAME record pointing to your tunnel
+
+3. **Set environment variables**:
+   ```bash
+   export CLOUDFLARE_TUNNEL_ID=claude-sms
+   export CLOUDFLARE_TUNNEL_URL=https://claude-sms.yourdomain.com
+   ```
+
+Now the webhook URL stays the same across restarts.
 
 ### State File
 
