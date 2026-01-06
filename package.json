@@ -18,12 +18,29 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/cli.js",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
+    "lint:deadcode": "knip --no-exit-code",
+    "lint:deadcode:strict": "knip",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "precommit": ".husky/pre-commit",
+    "prepush": ".husky/pre-push",
+    "lint:quiet": "eslint src/ --quiet && echo '✓ Lint passed' || { echo '❌ ESLint errors'; exit 1; }",
+    "lint:deadcode:quiet": "knip --no-exit-code --quiet 2>&1 | grep -E '^(Unused|Configuration)' || echo '✓ No unused code'",
+    "typecheck:quiet": "tsc --noEmit --pretty false && echo '✓ Type check passed'",
+    "test:changed:quiet": "vitest run --changed --reporter=dot --silent 2>&1 | tail -3",
+    "test:coverage:quiet": "vitest run --coverage --reporter=dot 2>&1 | grep -E '(FAIL|Test Files|passed|Coverage|threshold)' | tail -10",
+    "build:quiet": "tsc && echo '✓ Build complete'",
+    "prepare": "husky",
+    "version:major": "commit-and-tag-version --release-as major --skip.commit --skip.tag",
+    "version:minor": "commit-and-tag-version --release-as minor --skip.commit --skip.tag",
+    "version:patch": "commit-and-tag-version --release-as patch --skip.commit --skip.tag",
+    "release:patch": "commit-and-tag-version --release-as patch && git push --follow-tags",
+    "release:minor": "commit-and-tag-version --release-as minor && git push --follow-tags",
+    "release:major": "commit-and-tag-version --release-as major && git push --follow-tags"
   },
   "keywords": [
     "claude",
@@ -43,26 +60,23 @@
   },
   "homepage": "https://github.com/chris-bluera/claude-sms#readme",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "commander": "^12.1.0",
     "twilio": "^5.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.2",
-    "@typescript-eslint/eslint-plugin": "^8.19.0",
-    "@typescript-eslint/parser": "^8.19.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "commit-and-tag-version": "^12.5.0",
     "eslint": "^9.17.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.2.11",
-    "prettier": "^3.4.2",
-    "typescript": "^5.7.2"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "eslint --fix",
-      "prettier --write"
-    ]
+    "knip": "^5.41.1",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0",
+    "vitest": "^2.1.8"
   }
 }
