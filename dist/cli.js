@@ -138,12 +138,13 @@ program
     .command('enable')
     .description('Enable SMS notifications globally')
     .action(() => {
-    const success = enableGlobal();
-    if (success) {
+    try {
+        enableGlobal();
         console.log('✓ SMS notifications enabled globally');
     }
-    else {
-        console.error('Error: Failed to enable SMS notifications');
+    catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Error: ${message}`);
         process.exit(1);
     }
 });
@@ -154,12 +155,13 @@ program
     .command('disable')
     .description('Disable SMS notifications globally')
     .action(() => {
-    const success = disableGlobal();
-    if (success) {
+    try {
+        disableGlobal();
         console.log('✓ SMS notifications disabled globally');
     }
-    else {
-        console.error('Error: Failed to disable SMS notifications');
+    catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Error: ${message}`);
         process.exit(1);
     }
 });

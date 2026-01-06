@@ -3,6 +3,7 @@
  */
 import { sessionManager } from './sessions.js';
 import { stateManager } from './state.js';
+import { verifyTelnyxSignature } from './webhook-signature.js';
 const VALID_HOOK_EVENTS = new Set(['Notification', 'Stop', 'PreToolUse', 'UserPromptSubmit']);
 /**
  * Type guard for HookEvent
@@ -100,7 +101,27 @@ function isTelnyxWebhookPayload(value) {
  * Handle POST /webhook/telnyx - Incoming SMS from Telnyx
  */
 export async function handleTelnyxWebhook(req, res, ctx) {
+    // Extract signature headers
+    const signatureHeader = req.headers['telnyx-signature-ed25519'];
+    const timestampHeader = req.headers['telnyx-timestamp'];
+    // Read body first (needed for signature verification)
     const body = await readBody(req);
+    // Verify webhook signature (fail-fast per CLAUDE.md)
+    try {
+        const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
+        const timestamp = Array.isArray(timestampHeader) ? timestampHeader[0] : timestampHeader;
+        if (!verifyTelnyxSignature(body, signature ?? '', timestamp ?? '', ctx.webhookPublicKey)) {
+            console.warn('[webhook] Invalid webhook signature');
+            sendError(res, 401, 'Invalid webhook signature');
+            return;
+        }
+    }
+    catch (error) {
+        const message = error instanceof Error ? error.message : 'Signature verification failed';
+        console.warn(`[webhook] Signature verification error: ${message}`);
+        sendError(res, 401, message);
+        return;
+    }
     let rawData;
     try {
         rawData = parseJSON(body);

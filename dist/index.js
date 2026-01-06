@@ -9,4 +9,5 @@ export { createTunnel, CloudflaredTunnel } from './server/tunnel.js';
 export { sessionManager } from './server/sessions.js';
 export { stateManager, loadState, saveState, enableGlobal, disableGlobal } from './server/state.js';
 export { TelnyxClient, formatSMSMessage } from './server/telnyx.js';
+export { verifyTelnyxSignature } from './server/webhook-signature.js';
 //# sourceMappingURL=index.js.map

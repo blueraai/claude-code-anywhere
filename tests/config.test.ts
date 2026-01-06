@@ -10,6 +10,7 @@ describe('config', () => {
         TELNYX_API_KEY: process.env['TELNYX_API_KEY'],
         TELNYX_FROM_NUMBER: process.env['TELNYX_FROM_NUMBER'],
         SMS_USER_PHONE: process.env['SMS_USER_PHONE'],
+        TELNYX_WEBHOOK_PUBLIC_KEY: process.env['TELNYX_WEBHOOK_PUBLIC_KEY'],
         SMS_BRIDGE_PORT: process.env['SMS_BRIDGE_PORT'],
         SMS_BRIDGE_URL: process.env['SMS_BRIDGE_URL'],
       };
@@ -29,6 +30,7 @@ describe('config', () => {
       process.env['TELNYX_API_KEY'] = 'test-key';
       process.env['TELNYX_FROM_NUMBER'] = '+1234567890';
       process.env['SMS_USER_PHONE'] = '+0987654321';
+      process.env['TELNYX_WEBHOOK_PUBLIC_KEY'] = 'test-public-key';
       process.env['SMS_BRIDGE_PORT'] = '4000';
       delete process.env['SMS_BRIDGE_URL'];
 
@@ -44,6 +46,7 @@ describe('config', () => {
       process.env['TELNYX_API_KEY'] = 'test-key';
       process.env['TELNYX_FROM_NUMBER'] = '+1234567890';
       process.env['SMS_USER_PHONE'] = '+0987654321';
+      process.env['TELNYX_WEBHOOK_PUBLIC_KEY'] = 'test-public-key';
       delete process.env['SMS_BRIDGE_PORT'];
       delete process.env['SMS_BRIDGE_URL'];
 
@@ -59,6 +62,7 @@ describe('config', () => {
       process.env['TELNYX_API_KEY'] = 'test-key';
       process.env['TELNYX_FROM_NUMBER'] = '+1234567890';
       process.env['SMS_USER_PHONE'] = '+0987654321';
+      process.env['TELNYX_WEBHOOK_PUBLIC_KEY'] = 'test-public-key';
       process.env['SMS_BRIDGE_PORT'] = '4000';
       process.env['SMS_BRIDGE_URL'] = 'https://my-tunnel.example.com';
 

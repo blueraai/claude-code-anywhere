@@ -56,6 +56,7 @@ export interface TelnyxConfig {
     apiKey: string;
     fromNumber: string;
     userPhone: string;
+    webhookPublicKey: string;
 }
 /**
  * Application configuration

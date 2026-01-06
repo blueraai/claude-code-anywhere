@@ -33,6 +33,7 @@ export class BridgeServer {
   private tunnelUrl: string | null = null;
   private startTime: number = 0;
   private readonly port: number;
+  private webhookPublicKey: string = '';
 
   constructor(port: number = DEFAULT_PORT) {
     this.port = port;
@@ -63,6 +64,7 @@ export class BridgeServer {
     }
 
     this.telnyxClient = new TelnyxClient(configResult.data);
+    this.webhookPublicKey = configResult.data.webhookPublicKey;
     this.startTime = Date.now();
 
     // Start session cleanup
@@ -111,6 +113,7 @@ export class BridgeServer {
       telnyxClient: this.telnyxClient,
       tunnelUrl: this.tunnelUrl,
       startTime: this.startTime,
+      webhookPublicKey: this.webhookPublicKey,
     };
   }
 

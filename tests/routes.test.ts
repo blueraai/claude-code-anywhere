@@ -6,9 +6,13 @@ import type { IncomingMessage, ServerResponse } from 'http';
 // For now, let's create a test module that imports routes and tests via the handlers
 
 // Create a mock request that emits events
-function createMockRequest(): IncomingMessage & EventEmitter {
-  const req = new EventEmitter() as IncomingMessage & EventEmitter & { destroy: () => void };
+function createMockRequest(
+  headers: Record<string, string | string[]> = {}
+): IncomingMessage & EventEmitter {
+  const req = new EventEmitter() as IncomingMessage &
+    EventEmitter & { destroy: () => void; headers: Record<string, string | string[]> };
   req.destroy = vi.fn();
+  req.headers = headers;
   return req;
 }
 
@@ -170,11 +174,12 @@ describe('handleTelnyxWebhook', () => {
     vi.restoreAllMocks();
   });
 
-  it('returns 400 on invalid JSON', async () => {
+  it('returns 401 when signature header is missing', async () => {
     const { handleTelnyxWebhook } = await import('../src/server/routes.js');
     const { TelnyxClient } = await import('../src/server/telnyx.js');
 
-    const req = createMockRequest();
+    // Request without signature headers
+    const req = createMockRequest({});
     const res = createMockResponse();
 
     const mockCtx = {
@@ -182,28 +187,33 @@ describe('handleTelnyxWebhook', () => {
         apiKey: 'test',
         fromNumber: '+1555000000',
         userPhone: '+1555111111',
+        webhookPublicKey: 'test-public-key',
       }),
       tunnelUrl: null,
       startTime: Date.now(),
+      webhookPublicKey: 'test-public-key',
     };
 
     const handlerPromise = handleTelnyxWebhook(req, res, mockCtx);
 
-    // Send invalid JSON
-    req.emit('data', Buffer.from('not valid json {{{'));
+    req.emit('data', Buffer.from('{"data":{}}'));
     req.emit('end');
 
     await handlerPromise;
 
-    // CLAUDE.md: fail early and fast - invalid input should return error status
-    expect(res._statusCode).toBe(400);
+    // Should fail signature validation
+    expect(res._statusCode).toBe(401);
   });
 
-  it('returns 400 on invalid webhook payload structure', async () => {
+  it('returns 401 when signature is invalid', async () => {
     const { handleTelnyxWebhook } = await import('../src/server/routes.js');
     const { TelnyxClient } = await import('../src/server/telnyx.js');
 
-    const req = createMockRequest();
+    // Request with invalid signature
+    const req = createMockRequest({
+      'telnyx-signature-ed25519': 'invalid-signature',
+      'telnyx-timestamp': String(Math.floor(Date.now() / 1000)),
+    });
     const res = createMockResponse();
 
     const mockCtx = {
@@ -211,20 +221,21 @@ describe('handleTelnyxWebhook', () => {
         apiKey: 'test',
         fromNumber: '+1555000000',
         userPhone: '+1555111111',
+        webhookPublicKey: 'test-public-key',
       }),
       tunnelUrl: null,
       startTime: Date.now(),
+      webhookPublicKey: 'test-public-key',
     };
 
     const handlerPromise = handleTelnyxWebhook(req, res, mockCtx);
 
-    // Send valid JSON but invalid payload structure
-    req.emit('data', Buffer.from(JSON.stringify({ foo: 'bar' })));
+    req.emit('data', Buffer.from('{"data":{}}'));
     req.emit('end');
 
     await handlerPromise;
 
-    // CLAUDE.md: fail early and fast - invalid payload should return error status
-    expect(res._statusCode).toBe(400);
+    // Should fail signature validation
+    expect(res._statusCode).toBe(401);
   });
 });

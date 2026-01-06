@@ -6,6 +6,7 @@ describe('TelnyxClient', () => {
     apiKey: 'test-api-key',
     fromNumber: '+15551234567',
     userPhone: '+15559876543',
+    webhookPublicKey: 'test-public-key',
   };
 
   beforeEach(() => {

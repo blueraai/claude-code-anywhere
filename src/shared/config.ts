@@ -13,6 +13,7 @@ export function loadTelnyxConfig(): Result<TelnyxConfig, string> {
   const apiKey = process.env['TELNYX_API_KEY'];
   const fromNumber = process.env['TELNYX_FROM_NUMBER'];
   const userPhone = process.env['SMS_USER_PHONE'];
+  const webhookPublicKey = process.env['TELNYX_WEBHOOK_PUBLIC_KEY'];
 
   const missing: string[] = [];
 
@@ -25,6 +26,9 @@ export function loadTelnyxConfig(): Result<TelnyxConfig, string> {
   if (userPhone === undefined || userPhone === '') {
     missing.push('SMS_USER_PHONE');
   }
+  if (webhookPublicKey === undefined || webhookPublicKey === '') {
+    missing.push('TELNYX_WEBHOOK_PUBLIC_KEY');
+  }
 
   if (
     apiKey === undefined ||
@@ -32,7 +36,9 @@ export function loadTelnyxConfig(): Result<TelnyxConfig, string> {
     fromNumber === undefined ||
     fromNumber === '' ||
     userPhone === undefined ||
-    userPhone === ''
+    userPhone === '' ||
+    webhookPublicKey === undefined ||
+    webhookPublicKey === ''
   ) {
     return {
       success: false,
@@ -46,6 +52,7 @@ export function loadTelnyxConfig(): Result<TelnyxConfig, string> {
       apiKey,
       fromNumber,
       userPhone,
+      webhookPublicKey,
     },
   };
 }

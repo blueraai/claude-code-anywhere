@@ -10,6 +10,7 @@ export interface RouteContext {
     telnyxClient: TelnyxClient;
     tunnelUrl: string | null;
     startTime: number;
+    webhookPublicKey: string;
 }
 /** Maximum request body size (1MB) */
 export declare const MAX_BODY_SIZE: number;

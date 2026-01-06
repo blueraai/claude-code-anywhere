@@ -9,6 +9,7 @@ export function loadTelnyxConfig() {
     const apiKey = process.env['TELNYX_API_KEY'];
     const fromNumber = process.env['TELNYX_FROM_NUMBER'];
     const userPhone = process.env['SMS_USER_PHONE'];
+    const webhookPublicKey = process.env['TELNYX_WEBHOOK_PUBLIC_KEY'];
     const missing = [];
     if (apiKey === undefined || apiKey === '') {
         missing.push('TELNYX_API_KEY');
@@ -19,12 +20,17 @@ export function loadTelnyxConfig() {
     if (userPhone === undefined || userPhone === '') {
         missing.push('SMS_USER_PHONE');
     }
+    if (webhookPublicKey === undefined || webhookPublicKey === '') {
+        missing.push('TELNYX_WEBHOOK_PUBLIC_KEY');
+    }
     if (apiKey === undefined ||
         apiKey === '' ||
         fromNumber === undefined ||
         fromNumber === '' ||
         userPhone === undefined ||
-        userPhone === '') {
+        userPhone === '' ||
+        webhookPublicKey === undefined ||
+        webhookPublicKey === '') {
         return {
             success: false,
             error: `Missing required environment variables: ${missing.join(', ')}`,
@@ -36,6 +42,7 @@ export function loadTelnyxConfig() {
             apiKey,
             fromNumber,
             userPhone,
+            webhookPublicKey,
         },
     };
 }

@@ -10,6 +10,7 @@ export declare class BridgeServer {
     private tunnelUrl;
     private startTime;
     private readonly port;
+    private webhookPublicKey;
     constructor(port?: number);
     /**
      * Set the tunnel URL (called by tunnel module)
