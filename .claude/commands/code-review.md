@@ -4,7 +4,7 @@ Review the local codebase using multi-agent analysis. See @.claude/skills/code-r
 
 ## Context
 
-!`echo "---SOURCE FILES---" && find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) | grep -v node_modules | grep -v dist | head -20 && echo "---CLAUDE.md FILES---" && find . -name "CLAUDE.md" 2>/dev/null`
+!`echo "---PROJECT---" && ls -la && echo "---CLAUDE.md FILES---" && find . -name CLAUDE.md 2>/dev/null`
 
 ## Workflow
 
