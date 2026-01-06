@@ -17,29 +17,23 @@ const DEFAULT_STATE = {
  */
 export function loadState() {
     const statePath = getStateFilePath();
-    try {
-        if (!existsSync(statePath)) {
-            return { ...DEFAULT_STATE };
-        }
-        const content = readFileSync(statePath, 'utf-8');
-        const parsed = JSON.parse(content);
-        if (!isValidState(parsed)) {
-            console.warn('[state] Invalid state file, using defaults');
-            return { ...DEFAULT_STATE };
-        }
-        // Merge with defaults to ensure all fields exist
-        return {
-            enabled: parsed.enabled,
-            hooks: {
-                ...DEFAULT_STATE.hooks,
-                ...parsed.hooks,
-            },
-        };
-    }
-    catch (error) {
-        console.warn('[state] Failed to load state file:', error);
+    // If file doesn't exist, return defaults (valid for first-time setup)
+    if (!existsSync(statePath)) {
         return { ...DEFAULT_STATE };
     }
+    const content = readFileSync(statePath, 'utf-8');
+    const parsed = JSON.parse(content);
+    if (!isValidState(parsed)) {
+        throw new Error(`Invalid state file format at ${statePath}`);
+    }
+    // Merge with defaults to ensure all fields exist
+    return {
+        enabled: parsed.enabled,
+        hooks: {
+            ...DEFAULT_STATE.hooks,
+            ...parsed.hooks,
+        },
+    };
 }
 /**
  * Save global state to file
@@ -142,9 +136,10 @@ export class StateManager {
         return { ...this.state };
     }
     /**
-     * Check if globally enabled
+     * Check if globally enabled (reads fresh state from disk)
      */
     isEnabled() {
+        this.reload();
         return this.state.enabled;
     }
     /**
@@ -162,9 +157,10 @@ export class StateManager {
         return saveState(this.state);
     }
     /**
-     * Check if a hook is enabled
+     * Check if a hook is enabled (reads fresh state from disk)
      */
     isHookEnabled(hook) {
+        this.reload();
         return this.state.enabled && this.state.hooks[hook];
     }
 }

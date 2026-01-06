@@ -26,6 +26,9 @@ export interface RouteContext {
   startTime: number;
 }
 
+/** Maximum request body size (1MB) */
+export const MAX_BODY_SIZE = 1024 * 1024;
+
 /**
  * Parse JSON body
  */
@@ -38,14 +41,27 @@ function parseJSON(body: string): unknown {
 }
 
 /**
- * Read request body
+ * Read request body with error handling and size limit
  */
-async function readBody(req: IncomingMessage): Promise<string> {
-  return new Promise((resolve) => {
+export async function readBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
     let body = '';
+    let size = 0;
+
     req.on('data', (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) {
+        req.destroy();
+        reject(new Error(`Request body exceeds size limit of ${String(MAX_BODY_SIZE)} bytes`));
+        return;
+      }
       body += chunk.toString();
     });
+
+    req.on('error', (err: Error) => {
+      reject(err);
+    });
+
     req.on('end', () => {
       resolve(body);
     });

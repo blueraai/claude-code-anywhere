@@ -11,6 +11,12 @@ export interface RouteContext {
     tunnelUrl: string | null;
     startTime: number;
 }
+/** Maximum request body size (1MB) */
+export declare const MAX_BODY_SIZE: number;
+/**
+ * Read request body with error handling and size limit
+ */
+export declare function readBody(req: IncomingMessage): Promise<string>;
 /**
  * Handle POST /webhook/telnyx - Incoming SMS from Telnyx
  */

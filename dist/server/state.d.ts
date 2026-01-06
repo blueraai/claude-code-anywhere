@@ -49,7 +49,7 @@ export declare class StateManager {
      */
     getState(): GlobalState;
     /**
-     * Check if globally enabled
+     * Check if globally enabled (reads fresh state from disk)
      */
     isEnabled(): boolean;
     /**
@@ -61,7 +61,7 @@ export declare class StateManager {
      */
     disable(): boolean;
     /**
-     * Check if a hook is enabled
+     * Check if a hook is enabled (reads fresh state from disk)
      */
     isHookEnabled(hook: HookEvent): boolean;
 }

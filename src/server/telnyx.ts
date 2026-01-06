@@ -103,19 +103,23 @@ export class TelnyxClient {
       }
 
       const rawData: unknown = await response.json();
-      const messageId =
-        typeof rawData === 'object' &&
-        rawData !== null &&
-        'data' in rawData &&
-        typeof rawData.data === 'object' &&
-        rawData.data !== null &&
-        'id' in rawData.data &&
-        typeof rawData.data.id === 'string'
-          ? rawData.data.id
-          : 'unknown';
+
+      // Validate response structure
+      if (
+        typeof rawData !== 'object' ||
+        rawData === null ||
+        !('data' in rawData) ||
+        typeof rawData.data !== 'object' ||
+        rawData.data === null ||
+        !('id' in rawData.data) ||
+        typeof rawData.data.id !== 'string'
+      ) {
+        throw new Error('Invalid Telnyx response: missing message ID');
+      }
+
       return {
         success: true,
-        data: messageId,
+        data: rawData.data.id,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
