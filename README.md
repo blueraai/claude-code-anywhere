@@ -131,6 +131,7 @@ Or in Claude Code:
 | Command | Description |
 |---------|-------------|
 | `/sms on` | Enable SMS for current session |
+| `/sms on --all` | Enable SMS globally |
 | `/sms off` | Disable SMS for current session |
 | `/sms off --all` | Disable SMS globally |
 | `/sms status` | Show current status |

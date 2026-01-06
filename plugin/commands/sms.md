@@ -12,6 +12,7 @@ Control SMS notifications for Claude Code.
 ## Usage
 
 - `/sms on` - Enable SMS for this session
+- `/sms on --all` - Enable SMS globally (all sessions)
 - `/sms off` - Disable SMS for this session
 - `/sms off --all` - Disable SMS globally (all sessions)
 - `/sms status` - Show current SMS status
@@ -25,6 +26,12 @@ Parse the user's argument and execute the appropriate action:
 curl -s -X POST http://localhost:3847/api/session/$CLAUDE_SESSION_ID/enable
 ```
 Then confirm: "SMS notifications enabled for this session."
+
+### For `on --all`:
+```bash
+curl -s -X POST http://localhost:3847/api/enable
+```
+Then confirm: "SMS notifications enabled globally."
 
 ### For `off`:
 ```bash
