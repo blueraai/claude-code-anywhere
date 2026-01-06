@@ -71,7 +71,8 @@ When Claude Code needs your input—a question, approval, or notification—you 
 
 1. Go to [telnyx.com](https://telnyx.com) and click **Sign Up**
 2. Complete registration and verify email
-3. Add payment method (pay-as-you-go, no minimums)
+3. Complete **KYC verification** (government-issued ID required)
+4. Add payment method (pay-as-you-go, no minimums)
 
 ### 2. Purchase Phone Number
 
@@ -104,14 +105,34 @@ When Claude Code needs your input—a question, approval, or notification—you 
 
 ### 6. 10DLC Registration (US only)
 
-For US SMS, you must register your use case to avoid carrier filtering:
+**Required for US SMS.** Without 10DLC registration, messages will be blocked by carriers.
 
-1. Go to **Messaging** → **10DLC**
-2. Register your **Brand** (your business/personal info)
-3. Create a **Campaign** (describe your SMS use case)
-4. Wait for approval (usually 1-2 business days)
+#### Step A: Register Your Brand ($4.50 one-time)
 
-> **Note**: Without 10DLC registration, US SMS may be filtered or blocked by carriers.
+1. Go to **Messaging** → **10DLC** → **Brands** → **Create Brand**
+2. Provide business information:
+   - **With EIN**: Legal company name, EIN, address (must match IRS Form CP-575)
+   - **Sole Proprietor**: Name, address, government-issued ID, SSN
+3. Submit and wait for verification (usually instant, sometimes 24-48 hours)
+
+#### Step B: Create a Campaign ($15 + monthly fee)
+
+1. Go to **Campaigns** → **Create Campaign**
+2. Select your brand and use case type:
+   - **Low Volume Mixed** ($1.50/month) — recommended for personal/developer use
+   - **Standard** ($10/month) — higher throughput
+3. Provide required details:
+   - Sample messages you'll send
+   - Opt-in/opt-out message templates
+   - Brief description of your use case (e.g., "Developer notifications from coding assistant")
+4. Submit for review (1-2 business days)
+
+#### Step C: Assign Number to Campaign
+
+1. Once campaign is approved, go to campaign settings
+2. Add your phone number to the campaign
+
+> **Important**: As of Feb 2025, unregistered 10DLC traffic is **blocked entirely** by US carriers. See [Telnyx 10DLC Guide](https://support.telnyx.com/en/articles/6325731-register-for-10dlc-messaging) for details.
 
 </details>
 
@@ -450,10 +471,13 @@ This provides:
 | Service | Cost |
 |---------|------|
 | Telnyx phone number | ~$1/month |
-| Telnyx SMS (US) | ~$0.004/message |
-| 10DLC registration | One-time ~$4-15 |
+| Telnyx SMS (US) | ~$0.003-0.005/message |
+| 10DLC brand registration | $4.50 one-time |
+| 10DLC campaign review | $15 one-time |
+| 10DLC campaign (Low Volume) | $1.50/month |
 | Cloudflared tunnel | Free |
-| **Estimated monthly (moderate use)** | **$3-10** |
+| **First month (setup + use)** | **~$25** |
+| **Ongoing monthly** | **~$3-5** |
 
 ---
 
