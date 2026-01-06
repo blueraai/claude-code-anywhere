@@ -45,23 +45,36 @@ export async function readBody(req: IncomingMessage): Promise<string> {
     let body = '';
     let size = 0;
 
-    req.on('data', (chunk: Buffer) => {
+    const cleanup = (): void => {
+      req.removeListener('data', onData);
+      req.removeListener('error', onError);
+      req.removeListener('end', onEnd);
+    };
+
+    const onData = (chunk: Buffer): void => {
       size += chunk.length;
       if (size > MAX_BODY_SIZE) {
+        cleanup();
         req.destroy();
         reject(new Error(`Request body exceeds size limit of ${String(MAX_BODY_SIZE)} bytes`));
         return;
       }
       body += chunk.toString();
-    });
+    };
 
-    req.on('error', (err: Error) => {
+    const onError = (err: Error): void => {
+      cleanup();
       reject(err);
-    });
+    };
 
-    req.on('end', () => {
+    const onEnd = (): void => {
+      cleanup();
       resolve(body);
-    });
+    };
+
+    req.on('data', onData);
+    req.on('error', onError);
+    req.on('end', onEnd);
   });
 }
 

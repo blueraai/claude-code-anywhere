@@ -104,6 +104,61 @@ describe('readBody', () => {
     const body = await bodyPromise;
     expect(body).toBe('hello world');
   });
+
+  it('cleans up listeners after size limit rejection', async () => {
+    const { readBody, MAX_BODY_SIZE } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+
+    const bodyPromise = readBody(req);
+
+    // Send data that exceeds the limit
+    const largeChunk = Buffer.alloc(MAX_BODY_SIZE + 1, 'x');
+    req.emit('data', largeChunk);
+
+    await expect(bodyPromise).rejects.toThrow(/size limit/i);
+
+    // Listeners should be removed after rejection
+    expect(req.listenerCount('data')).toBe(0);
+    expect(req.listenerCount('error')).toBe(0);
+    expect(req.listenerCount('end')).toBe(0);
+  });
+
+  it('cleans up listeners after error', async () => {
+    const { readBody } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+
+    const bodyPromise = readBody(req);
+
+    // Emit error
+    req.emit('error', new Error('Connection reset'));
+
+    await expect(bodyPromise).rejects.toThrow('Connection reset');
+
+    // Listeners should be removed after rejection
+    expect(req.listenerCount('data')).toBe(0);
+    expect(req.listenerCount('error')).toBe(0);
+    expect(req.listenerCount('end')).toBe(0);
+  });
+
+  it('cleans up listeners after successful read', async () => {
+    const { readBody } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+
+    const bodyPromise = readBody(req);
+
+    req.emit('data', Buffer.from('hello'));
+    req.emit('end');
+
+    await bodyPromise;
+
+    // Listeners should be removed after resolution
+    expect(req.listenerCount('data')).toBe(0);
+    expect(req.listenerCount('error')).toBe(0);
+    expect(req.listenerCount('end')).toBe(0);
+  });
 });
 
 describe('handleTelnyxWebhook', () => {
