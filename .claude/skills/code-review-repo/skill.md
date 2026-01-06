@@ -1,5 +1,5 @@
 ---
-name: code-review-local
+name: code-review-repo
 description: Review local codebase for bugs and CLAUDE.md compliance using multi-agent analysis
 version: 1.0.0
 ---

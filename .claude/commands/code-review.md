@@ -1,6 +1,6 @@
 # Code Review
 
-Review the local codebase using multi-agent analysis. See @.claude/skills/code-review-local/skill.md for process details.
+Review the local codebase using multi-agent analysis. See @.claude/skills/code-review-repo/skill.md for process details.
 
 ## Context
 
