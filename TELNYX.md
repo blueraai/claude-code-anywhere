@@ -74,14 +74,26 @@ US carriers require registration for A2P (Application-to-Person) messaging. **Us
 
 1. Go to **Messaging** → **Compliance**
 2. Find your toll-free number and click to verify
-3. Fill out the single verification form:
-   - **Business name**: Your name or company
-   - **Use case**: `Account notifications for developer tools`
-   - **Sample message**: `[CC-abc123] Task completed. Reply with your response.`
-   - **Message volume**: Low (estimate monthly volume)
-4. Submit and wait for approval (typically 1-2 business days)
+3. Fill out the verification form:
 
-That's it. No brand registration, no campaign forms, no opt-in screenshots.
+| Field | Value |
+|-------|-------|
+| **Summarize use-case** | `Developer tool notifications to my own phone` |
+| **Message content** | `[CC-abc123] Task completed. Reply with your response. Reply STOP to opt out.` |
+| **Opt-In workflow** | `Developer configures their own phone number in software settings and enables notifications. Single recipient only.` |
+| **Additional use-case details** | `Personal developer tool. Software sends task status alerts to the developer's own mobile phone. No third-party recipients.` |
+| **Opt-In workflow image URL** | Screenshot of your config (e.g., `.env` file or README setup section)* |
+| **Opt in keywords** | `START` |
+| **Opt in message** | `Notifications enabled. Reply STOP to unsubscribe.` |
+| **Help message** | `Developer notifications from Claude Code. Reply STOP to unsubscribe.` |
+| **Privacy policy URL** | Leave blank |
+| **Terms and conditions URL** | Leave blank |
+| **ISV Reseller** | Leave blank |
+| **Age-Gated Content** | No |
+
+*For the image URL, host a screenshot anywhere (imgur, GitHub) showing where the phone number is configured.
+
+4. Submit and wait for approval (typically 1-2 business days)
 
 ### Why Not 10DLC?
 
