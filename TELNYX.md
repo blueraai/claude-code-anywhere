@@ -72,8 +72,8 @@ US carriers require registration for A2P (Application-to-Person) messaging. **Us
 
 ### Toll-Free Verification
 
-1. Go to **Messaging** → **Toll-Free Verification**
-2. Click **Verify Number** for your toll-free number
+1. Go to **Messaging** → **Compliance**
+2. Find your toll-free number and click to verify
 3. Fill out the single verification form:
    - **Business name**: Your name or company
    - **Use case**: `Account notifications for developer tools`
