@@ -60,7 +60,7 @@ export interface ServerStatus {
  * macOS Messages configuration
  */
 export interface MessagesConfig {
-  userPhone: string;
+  userEmail: string;
 }
 
 /**

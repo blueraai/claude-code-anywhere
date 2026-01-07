@@ -16,7 +16,7 @@ const DEFAULT_POLL_INTERVAL_MS = 2000;
  * Configuration for Messages client
  */
 export interface MessagesConfig {
-  userPhone: string;
+  userEmail: string;
 }
 
 /**
@@ -198,18 +198,18 @@ export class MessagesClient {
           'service' in obj
         );
 
-      const normalizedUserPhone = this.normalizePhone(this.config.userPhone);
+      const normalizedUserEmail = this.config.userEmail.toLowerCase();
       const chat = chats.find(
-        (c) => this.normalizePhone(c.identifier) === normalizedUserPhone
+        (c) => c.identifier.toLowerCase() === normalizedUserEmail
       );
 
       if (chat) {
         this.chatId = chat.id;
         // Get the last message ID to avoid processing old messages
         this.updateLastMessageId();
-        console.log(`[messages] Found chat with ${this.config.userPhone} (chat ID: ${String(this.chatId)})`);
+        console.log(`[messages] Found chat with ${this.config.userEmail} (chat ID: ${String(this.chatId)})`);
       } else {
-        console.log(`[messages] No existing chat found with ${this.config.userPhone}. Will create on first send.`);
+        console.log(`[messages] No existing chat found with ${this.config.userEmail}. Will create on first send.`);
       }
 
       return { success: true, data: undefined };
@@ -249,10 +249,10 @@ export class MessagesClient {
   }
 
   /**
-   * Normalize phone number for comparison
+   * Normalize email for comparison
    */
-  private normalizePhone(phone: string): string {
-    return phone.replace(/\D/g, '');
+  private normalizeEmail(email: string): string {
+    return email.toLowerCase().trim();
   }
 
   /**
@@ -262,7 +262,7 @@ export class MessagesClient {
     try {
       // Use execSync with heredoc-style input to avoid shell escaping issues
       const result = execSync(
-        `imsg send --to "${this.config.userPhone}" --text "${message.replace(/"/g, '\\"')}" --service sms`,
+        `imsg send --to "${this.config.userEmail}" --text "${message.replace(/"/g, '\\"')}" --service imessage`,
         { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
       );
 
@@ -421,10 +421,10 @@ export class MessagesClient {
   }
 
   /**
-   * Verify the from phone number matches configured user
+   * Verify the from email matches configured user
    */
-  verifyFromNumber(from: string): boolean {
-    return this.normalizePhone(from) === this.normalizePhone(this.config.userPhone);
+  verifyFromEmail(from: string): boolean {
+    return this.normalizeEmail(from) === this.normalizeEmail(this.config.userEmail);
   }
 
   /**

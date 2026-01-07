@@ -80,7 +80,7 @@ describe('MessagesClient', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.useFakeTimers();
-    client = new MessagesClient({ userPhone: '+1234567890' });
+    client = new MessagesClient({ userEmail: 'test@icloud.com' });
   });
 
   afterEach(() => {
@@ -104,11 +104,11 @@ describe('MessagesClient', () => {
       vi.mocked(execSync).mockReturnValueOnce('/opt/homebrew/bin/imsg');
       // Mock chats list
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":1,"identifier":"+1234567890","service":"SMS"}\n'
+        '{"id":1,"identifier":"test@icloud.com","service":"SMS"}\n'
       );
       // Mock history for last message ID
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":100,"is_from_me":true,"text":"hello","guid":"abc","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n'
+        '{"id":100,"is_from_me":true,"text":"hello","guid":"abc","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n'
       );
 
       const result = client.initialize();
@@ -161,8 +161,8 @@ describe('MessagesClient', () => {
     beforeEach(async () => {
       // Initialize client with a chat
       vi.mocked(execSync).mockReturnValueOnce('/opt/homebrew/bin/imsg');
-      vi.mocked(execSync).mockReturnValueOnce('{"id":1,"identifier":"+1234567890","service":"SMS"}\n');
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":1,"identifier":"test@icloud.com","service":"SMS"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.initialize();
     });
 
@@ -174,12 +174,12 @@ describe('MessagesClient', () => {
       client.sendMessage('test message');
 
       // Start polling
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.startPolling(callback);
 
       // Mock history with echo of our sent message (higher ID, is_from_me: false)
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":101,"is_from_me":false,"text":"test message","guid":"echo","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n'
+        '{"id":101,"is_from_me":false,"text":"test message","guid":"echo","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n'
       );
 
       // Trigger poll
@@ -197,12 +197,12 @@ describe('MessagesClient', () => {
       client.sendMessage('test message');
 
       // Start polling
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.startPolling(callback);
 
       // Mock history with a different message
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":101,"is_from_me":false,"text":"user reply","guid":"diff","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n'
+        '{"id":101,"is_from_me":false,"text":"user reply","guid":"diff","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n'
       );
 
       // Trigger poll
@@ -223,7 +223,7 @@ describe('MessagesClient', () => {
       client.sendMessage('test message');
 
       // Start polling
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.startPolling(callback);
 
       // Advance past TTL (60 seconds)
@@ -236,7 +236,7 @@ describe('MessagesClient', () => {
       // Now the old hash should be expired
       // Mock history with the old message text (would have been filtered before TTL)
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":102,"is_from_me":false,"text":"test message","guid":"late","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n'
+        '{"id":102,"is_from_me":false,"text":"test message","guid":"late","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n'
       );
 
       // Trigger poll
@@ -253,14 +253,14 @@ describe('MessagesClient', () => {
   describe('polling', () => {
     beforeEach(async () => {
       vi.mocked(execSync).mockReturnValueOnce('/opt/homebrew/bin/imsg');
-      vi.mocked(execSync).mockReturnValueOnce('{"id":1,"identifier":"+1234567890","service":"SMS"}\n');
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":1,"identifier":"test@icloud.com","service":"SMS"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.initialize();
     });
 
     it('starts polling at specified interval', () => {
       const callback = vi.fn();
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.startPolling(callback, 5000);
 
       // Should poll after 5 seconds
@@ -275,7 +275,7 @@ describe('MessagesClient', () => {
 
     it('stops polling when stopPolling is called', () => {
       const callback = vi.fn();
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.startPolling(callback);
 
       client.stopPolling();
@@ -289,12 +289,12 @@ describe('MessagesClient', () => {
 
     it('skips messages with is_from_me: true', async () => {
       const callback = vi.fn();
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.startPolling(callback);
 
       // Mock history with is_from_me: true message
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":101,"is_from_me":true,"text":"from me","guid":"mine","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n'
+        '{"id":101,"is_from_me":true,"text":"from me","guid":"mine","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n'
       );
 
       vi.advanceTimersByTime(2000);
@@ -304,19 +304,19 @@ describe('MessagesClient', () => {
 
     it('skips already-processed message IDs', async () => {
       const callback = vi.fn();
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.startPolling(callback);
 
       // First poll with new message
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":101,"is_from_me":false,"text":"new msg","guid":"new","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n'
+        '{"id":101,"is_from_me":false,"text":"new msg","guid":"new","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n'
       );
       vi.advanceTimersByTime(2000);
       expect(callback).toHaveBeenCalledTimes(1);
 
       // Second poll returns same message
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":101,"is_from_me":false,"text":"new msg","guid":"new","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n'
+        '{"id":101,"is_from_me":false,"text":"new msg","guid":"new","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n'
       );
       vi.advanceTimersByTime(2000);
 
@@ -326,11 +326,11 @@ describe('MessagesClient', () => {
 
     it('parses session ID from [CC-xxx] prefix', async () => {
       const callback = vi.fn();
-      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n');
+      vi.mocked(execSync).mockReturnValueOnce('{"id":100,"is_from_me":true,"text":"old","guid":"x","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n');
       client.startPolling(callback);
 
       vi.mocked(execSync).mockReturnValueOnce(
-        '{"id":101,"is_from_me":false,"text":"[CC-abc123] yes","guid":"reply","chat_id":1,"sender":"+1234567890","created_at":"2024-01-01"}\n'
+        '{"id":101,"is_from_me":false,"text":"[CC-abc123] yes","guid":"reply","chat_id":1,"sender":"test@icloud.com","created_at":"2024-01-01"}\n'
       );
       vi.advanceTimersByTime(2000);
 
@@ -341,14 +341,15 @@ describe('MessagesClient', () => {
     });
   });
 
-  describe('verifyFromNumber', () => {
-    it('returns true for matching normalized numbers', () => {
-      expect(client.verifyFromNumber('+1 (234) 567-890')).toBe(true);
-      expect(client.verifyFromNumber('1234567890')).toBe(true);
+  describe('verifyFromEmail', () => {
+    it('returns true for matching normalized emails', () => {
+      expect(client.verifyFromEmail('test@icloud.com')).toBe(true);
+      expect(client.verifyFromEmail('TEST@ICLOUD.COM')).toBe(true);
+      expect(client.verifyFromEmail('  test@icloud.com  ')).toBe(true);
     });
 
-    it('returns false for different numbers', () => {
-      expect(client.verifyFromNumber('+9876543210')).toBe(false);
+    it('returns false for different emails', () => {
+      expect(client.verifyFromEmail('other@icloud.com')).toBe(false);
     });
   });
 });

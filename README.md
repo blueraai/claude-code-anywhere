@@ -65,7 +65,7 @@ When Claude Code needs your input—a question, approval, or notification—you 
 ## Requirements
 
 - **macOS only** — Uses native Messages.app
-- **iPhone** — Messages must be set up for SMS relay
+- **iPhone** — Signed into the same Apple ID
 - **Node.js 18+**
 - **imsg CLI tool** — `brew install steipete/tap/imsg`
 - **Full Disk Access** — Required for reading incoming messages
@@ -93,7 +93,7 @@ claude /plugin add github.com/chris-bluera/claude-sms
 ### 3. Set Environment Variable
 
 ```bash
-export SMS_USER_PHONE=+1987654321  # Your phone number
+export SMS_USER_EMAIL=your@icloud.com  # Your Apple ID email
 ```
 
 Add this to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) for persistence.
@@ -226,7 +226,7 @@ With session ID (multiple sessions):
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SMS_USER_PHONE` | Yes | Your mobile in E.164 format (e.g., `+15559876543`) |
+| `SMS_USER_EMAIL` | Yes | Your Apple ID email (e.g., `you@icloud.com`) |
 | `SMS_BRIDGE_URL` | No | Bridge server URL (default: localhost:3847) |
 | `SMS_BRIDGE_PORT` | No | Server port (default: 3847) |
 
@@ -250,46 +250,41 @@ Settings are stored in `~/.claude/claude-sms/state.json`:
 
 ## Why macOS Messages Instead of Twilio/Telnyx?
 
-We considered cloud SMS providers (Twilio, Telnyx) but chose native macOS Messages.app integration for several reasons:
+We considered cloud SMS providers (Twilio, Telnyx) but chose native macOS Messages.app with iMessage for several reasons:
 
-| Consideration | Cloud Providers (Twilio/Telnyx) | macOS Messages |
+| Consideration | Cloud Providers (Twilio/Telnyx) | macOS iMessage |
 |--------------|--------------------------------|----------------|
 | **Cost** | $0.01-0.05 per SMS | Free |
 | **Carrier Registration** | 10DLC registration required (~$15/mo + weeks of approval) | None |
 | **Toll-Free Verification** | 3-5 business days, compliance paperwork | None |
-| **Data Privacy** | Messages routed through third-party servers | All local |
+| **Data Privacy** | Messages routed through third-party servers | All local (end-to-end encrypted) |
 | **Setup Complexity** | API keys, webhooks, tunneling | Just `brew install` |
 | **Platform Support** | Any platform | macOS only |
 
-**The trade-off:** This only works on macOS with an iPhone for SMS relay. If you need cross-platform support, consider contributing a Twilio/Telnyx backend.
+**The trade-off:** This only works on macOS with iMessage. If you need cross-platform support, consider contributing a Twilio/Telnyx backend.
 
 ---
 
 ## Known Limitations
 
 <details>
-<summary><b>Double Message Display (Self-Messaging)</b></summary>
-
-When sending SMS to your own phone number (which is the typical setup), each message appears twice in the Messages.app conversation:
-1. Once as the sent message
-2. Once as the received "echo"
-
-This is a macOS Messages.app behavior when texting yourself. The bridge server uses hash-based deduplication to ignore these echoes, but you'll still see both copies in the Messages UI.
-
-**Why it happens:** SMS relay sends the message to your carrier, which delivers it back to your phone, creating the duplicate.
-
-**Impact:** Visual clutter only. The bridge correctly processes only genuine replies.
-</details>
-
-<details>
 <summary><b>macOS Only</b></summary>
 
 This tool requires:
 - macOS with Messages.app
-- An iPhone with "Text Message Forwarding" enabled
-- Both devices signed into the same Apple ID
+- Both Mac and iPhone signed into the same Apple ID
 
 If you need cross-platform support, consider implementing a cloud SMS backend (PRs welcome!).
+</details>
+
+<details>
+<summary><b>iMessage Required</b></summary>
+
+Messages are sent via iMessage to your Apple ID email, not SMS. This means:
+- Requires internet connectivity on both devices
+- Your Apple ID must be set up for iMessage
+
+This approach avoids SMS carrier fees and eliminates duplicate message issues that occur when texting your own phone number.
 </details>
 
 ---
@@ -297,7 +292,7 @@ If you need cross-platform support, consider implementing a cloud SMS backend (P
 ## Security
 
 - **Local Only** — Messages never leave your Mac (no third-party services)
-- **Phone Verification** — Only responds to your configured phone number
+- **Email Verification** — Only responds to your configured Apple ID
 - **Session IDs** — Prevent cross-session interference
 - **Timeout** — Sessions expire after 30 minutes of inactivity
 - **No Secrets** — Never sends credentials/secrets via SMS
@@ -307,12 +302,12 @@ If you need cross-platform support, consider implementing a cloud SMS backend (P
 ## Troubleshooting
 
 <details>
-<summary><b>SMS Not Sending</b></summary>
+<summary><b>Message Not Sending</b></summary>
 
 1. Check imsg is installed: `which imsg`
-2. Verify environment variable: `echo $SMS_USER_PHONE`
-3. Ensure Messages.app is set up for SMS relay with your iPhone
-4. Test manually: `imsg send --to "+1234567890" --text "test" --service sms`
+2. Verify environment variable: `echo $SMS_USER_EMAIL`
+3. Ensure Messages.app is set up with your Apple ID
+4. Test manually: `imsg send --to "you@icloud.com" --text "test" --service imessage`
 </details>
 
 <details>
@@ -328,7 +323,7 @@ If you need cross-platform support, consider implementing a cloud SMS backend (P
 <summary><b>Server Not Starting</b></summary>
 
 1. Check if port 3847 is in use: `lsof -i :3847`
-2. Verify SMS_USER_PHONE is set
+2. Verify SMS_USER_EMAIL is set
 3. Try a different port: `npx claude-sms server -p 3848`
 </details>
 

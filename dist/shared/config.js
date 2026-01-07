@@ -6,17 +6,24 @@ const DEFAULT_PORT = 3847;
  * Load Messages configuration from environment variables
  */
 export function loadMessagesConfig() {
-    const userPhone = process.env['SMS_USER_PHONE'];
-    if (userPhone === undefined || userPhone === '') {
+    const userEmail = process.env['SMS_USER_EMAIL'];
+    if (userEmail === undefined || userEmail === '') {
         return {
             success: false,
-            error: 'Missing required environment variable: SMS_USER_PHONE',
+            error: 'Missing required environment variable: SMS_USER_EMAIL (your Apple ID email)',
+        };
+    }
+    // Basic email validation
+    if (!userEmail.includes('@') || !userEmail.includes('.')) {
+        return {
+            success: false,
+            error: `Invalid SMS_USER_EMAIL: "${userEmail}" is not a valid email address`,
         };
     }
     return {
         success: true,
         data: {
-            userPhone,
+            userEmail,
         },
     };
 }

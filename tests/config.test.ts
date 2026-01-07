@@ -12,7 +12,7 @@ describe('config', () => {
 
     beforeEach(() => {
       originalEnv = {
-        SMS_USER_PHONE: process.env['SMS_USER_PHONE'],
+        SMS_USER_EMAIL: process.env['SMS_USER_EMAIL'],
       };
     });
 
@@ -26,33 +26,43 @@ describe('config', () => {
       }
     });
 
-    it('returns success when SMS_USER_PHONE is set', () => {
-      process.env['SMS_USER_PHONE'] = '+1234567890';
+    it('returns success when SMS_USER_EMAIL is set', () => {
+      process.env['SMS_USER_EMAIL'] = 'test@icloud.com';
 
       const result = loadMessagesConfig();
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.userPhone).toBe('+1234567890');
+        expect(result.data.userEmail).toBe('test@icloud.com');
       }
     });
 
-    it('returns error when SMS_USER_PHONE is not set', () => {
-      delete process.env['SMS_USER_PHONE'];
+    it('returns error when SMS_USER_EMAIL is not set', () => {
+      delete process.env['SMS_USER_EMAIL'];
 
       const result = loadMessagesConfig();
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toContain('SMS_USER_PHONE');
+        expect(result.error).toContain('SMS_USER_EMAIL');
       }
     });
 
-    it('returns error when SMS_USER_PHONE is empty', () => {
-      process.env['SMS_USER_PHONE'] = '';
+    it('returns error when SMS_USER_EMAIL is empty', () => {
+      process.env['SMS_USER_EMAIL'] = '';
 
       const result = loadMessagesConfig();
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toContain('SMS_USER_PHONE');
+        expect(result.error).toContain('SMS_USER_EMAIL');
+      }
+    });
+
+    it('returns error when SMS_USER_EMAIL is not a valid email', () => {
+      process.env['SMS_USER_EMAIL'] = 'notanemail';
+
+      const result = loadMessagesConfig();
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain('not a valid email');
       }
     });
   });
@@ -62,7 +72,7 @@ describe('config', () => {
 
     beforeEach(() => {
       originalEnv = {
-        SMS_USER_PHONE: process.env['SMS_USER_PHONE'],
+        SMS_USER_EMAIL: process.env['SMS_USER_EMAIL'],
         SMS_BRIDGE_PORT: process.env['SMS_BRIDGE_PORT'],
         SMS_BRIDGE_URL: process.env['SMS_BRIDGE_URL'],
       };
@@ -79,7 +89,7 @@ describe('config', () => {
     });
 
     it('uses custom port in default bridge URL when SMS_BRIDGE_PORT is set', () => {
-      process.env['SMS_USER_PHONE'] = '+0987654321';
+      process.env['SMS_USER_EMAIL'] = 'test@icloud.com';
       process.env['SMS_BRIDGE_PORT'] = '4000';
       delete process.env['SMS_BRIDGE_URL'];
 
@@ -92,7 +102,7 @@ describe('config', () => {
     });
 
     it('uses default port 3847 in bridge URL when SMS_BRIDGE_PORT is not set', () => {
-      process.env['SMS_USER_PHONE'] = '+0987654321';
+      process.env['SMS_USER_EMAIL'] = 'test@icloud.com';
       delete process.env['SMS_BRIDGE_PORT'];
       delete process.env['SMS_BRIDGE_URL'];
 
@@ -105,7 +115,7 @@ describe('config', () => {
     });
 
     it('uses explicit SMS_BRIDGE_URL when provided', () => {
-      process.env['SMS_USER_PHONE'] = '+0987654321';
+      process.env['SMS_USER_EMAIL'] = 'test@icloud.com';
       process.env['SMS_BRIDGE_PORT'] = '4000';
       process.env['SMS_BRIDGE_URL'] = 'https://my-tunnel.example.com';
 
@@ -116,8 +126,8 @@ describe('config', () => {
       }
     });
 
-    it('returns error when SMS_USER_PHONE is missing', () => {
-      delete process.env['SMS_USER_PHONE'];
+    it('returns error when SMS_USER_EMAIL is missing', () => {
+      delete process.env['SMS_USER_EMAIL'];
 
       const result = loadAppConfig();
       expect(result.success).toBe(false);

@@ -147,16 +147,16 @@ export class MessagesClient {
                 'id' in obj &&
                 'identifier' in obj &&
                 'service' in obj);
-            const normalizedUserPhone = this.normalizePhone(this.config.userPhone);
-            const chat = chats.find((c) => this.normalizePhone(c.identifier) === normalizedUserPhone);
+            const normalizedUserEmail = this.config.userEmail.toLowerCase();
+            const chat = chats.find((c) => c.identifier.toLowerCase() === normalizedUserEmail);
             if (chat) {
                 this.chatId = chat.id;
                 // Get the last message ID to avoid processing old messages
                 this.updateLastMessageId();
-                console.log(`[messages] Found chat with ${this.config.userPhone} (chat ID: ${String(this.chatId)})`);
+                console.log(`[messages] Found chat with ${this.config.userEmail} (chat ID: ${String(this.chatId)})`);
             }
             else {
-                console.log(`[messages] No existing chat found with ${this.config.userPhone}. Will create on first send.`);
+                console.log(`[messages] No existing chat found with ${this.config.userEmail}. Will create on first send.`);
             }
             return { success: true, data: undefined };
         }
@@ -191,10 +191,10 @@ export class MessagesClient {
         }
     }
     /**
-     * Normalize phone number for comparison
+     * Normalize email for comparison
      */
-    normalizePhone(phone) {
-        return phone.replace(/\D/g, '');
+    normalizeEmail(email) {
+        return email.toLowerCase().trim();
     }
     /**
      * Send a message
@@ -202,7 +202,7 @@ export class MessagesClient {
     sendMessage(message) {
         try {
             // Use execSync with heredoc-style input to avoid shell escaping issues
-            const result = execSync(`imsg send --to "${this.config.userPhone}" --text "${message.replace(/"/g, '\\"')}" --service sms`, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
+            const result = execSync(`imsg send --to "${this.config.userEmail}" --text "${message.replace(/"/g, '\\"')}" --service imessage`, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
             // Track this message to filter out SMS echoes when sending to own number
             this.trackSentMessage(message);
             // Update chat ID if we didn't have one
@@ -331,10 +331,10 @@ export class MessagesClient {
         this.messageCallback = null;
     }
     /**
-     * Verify the from phone number matches configured user
+     * Verify the from email matches configured user
      */
-    verifyFromNumber(from) {
-        return this.normalizePhone(from) === this.normalizePhone(this.config.userPhone);
+    verifyFromEmail(from) {
+        return this.normalizeEmail(from) === this.normalizeEmail(this.config.userEmail);
     }
     /**
      * Clean up resources

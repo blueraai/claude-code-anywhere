@@ -57,7 +57,7 @@ program
     if (!configResult.success) {
         console.error(`Error: ${configResult.error}`);
         console.error('\nPlease set the following environment variable:');
-        console.error('  SMS_USER_PHONE=+1987654321');
+        console.error('  SMS_USER_EMAIL=your@icloud.com');
         process.exit(1);
     }
     try {
@@ -165,8 +165,8 @@ program
         console.error(`Error: ${configResult.error}`);
         process.exit(1);
     }
-    const { userPhone } = configResult.data;
-    console.log(`Sending test SMS to ${userPhone} via Messages.app...`);
+    const { userEmail } = configResult.data;
+    console.log(`Sending test iMessage to ${userEmail} via Messages.app...`);
     try {
         const client = new MessagesClient(configResult.data);
         const initResult = client.initialize();
@@ -215,7 +215,7 @@ program
     console.log('');
     if (configResult.success) {
         console.log('Messages Configuration:');
-        console.log(`  User Phone: ${configResult.data.messages.userPhone}`);
+        console.log(`  User Email: ${configResult.data.messages.userEmail}`);
         console.log(`  Bridge URL: ${configResult.data.bridgeUrl}`);
         console.log(`  Port: ${String(configResult.data.port)}`);
     }

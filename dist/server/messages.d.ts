@@ -10,7 +10,7 @@ import type { Result, HookEvent, ParsedSMS } from '../shared/types.js';
  * Configuration for Messages client
  */
 export interface MessagesConfig {
-    userPhone: string;
+    userEmail: string;
 }
 /**
  * Format a message for SMS with session ID prefix
@@ -57,9 +57,9 @@ export declare class MessagesClient {
      */
     private updateLastMessageId;
     /**
-     * Normalize phone number for comparison
+     * Normalize email for comparison
      */
-    private normalizePhone;
+    private normalizeEmail;
     /**
      * Send a message
      */
@@ -93,9 +93,9 @@ export declare class MessagesClient {
      */
     stopPolling(): void;
     /**
-     * Verify the from phone number matches configured user
+     * Verify the from email matches configured user
      */
-    verifyFromNumber(from: string): boolean;
+    verifyFromEmail(from: string): boolean;
     /**
      * Clean up resources
      */
