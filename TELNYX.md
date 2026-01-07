@@ -84,8 +84,8 @@ US carriers require registration for A2P (Application-to-Person) messaging. **Us
 | **Additional use-case details** | `Personal developer tool. Software sends task status alerts to the developer's own mobile phone. No third-party recipients.` |
 | **Opt-In workflow image URL** | Screenshot of your config (e.g., `.env` file or README setup section)* |
 | **Opt in keywords** | `START` |
-| **Opt in message** | `Notifications enabled. Reply STOP to unsubscribe.` |
-| **Help message** | `Developer notifications from Claude Code. Reply STOP to unsubscribe.` |
+| **Opt in message** | `You are subscribed to Claude SMS for developer notifications. Reply STOP to opt out. Reply HELP for help. Msg&data rates may apply. Message frequency varies.` |
+| **Help message** | `Claude SMS: Developer notifications from Claude Code. Reply STOP to unsubscribe. Contact: github.com/chris-bluera/claude-sms` |
 | **Privacy policy URL** | Leave blank |
 | **Terms and conditions URL** | Leave blank |
 | **ISV Reseller** | Leave blank |
