@@ -57,20 +57,17 @@ export interface ServerStatus {
 }
 
 /**
- * Telnyx configuration
+ * macOS Messages configuration
  */
-export interface TelnyxConfig {
-  apiKey: string;
-  fromNumber: string;
+export interface MessagesConfig {
   userPhone: string;
-  webhookPublicKey: string;
 }
 
 /**
  * Application configuration
  */
 export interface AppConfig {
-  telnyx: TelnyxConfig;
+  messages: MessagesConfig;
   bridgeUrl: string;
   port: number;
 }
@@ -98,25 +95,6 @@ export interface RegisterSessionRequest {
   prompt: string;
 }
 
-/**
- * Telnyx webhook payload (inbound SMS)
- */
-export interface TelnyxWebhookPayload {
-  data: {
-    event_type: string;
-    id: string;
-    payload: {
-      from: {
-        phone_number: string;
-      };
-      to: Array<{
-        phone_number: string;
-      }>;
-      text: string;
-      id: string;
-    };
-  };
-}
 
 /**
  * Parsed SMS message with optional session ID

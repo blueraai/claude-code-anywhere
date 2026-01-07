@@ -1,11 +1,11 @@
 /**
  * Configuration loading from environment variables
  */
-import type { AppConfig, TelnyxConfig, Result } from './types.js';
+import type { AppConfig, MessagesConfig, Result } from './types.js';
 /**
- * Load Telnyx configuration from environment variables
+ * Load Messages configuration from environment variables
  */
-export declare function loadTelnyxConfig(): Result<TelnyxConfig, string>;
+export declare function loadMessagesConfig(): Result<MessagesConfig, string>;
 /**
  * Load full application configuration
  */

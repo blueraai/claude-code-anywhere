@@ -10,7 +10,7 @@ const testStateFile = join(testDir, 'state.json');
 vi.mock('../src/shared/config.js', () => ({
   getStateFilePath: () => testStateFile,
   getStateDir: () => testDir,
-  loadTelnyxConfig: () => ({ success: false, error: 'Not configured' }),
+  loadMessagesConfig: () => ({ success: false, error: 'Not configured' }),
   loadAppConfig: () => ({ success: false, error: 'Not configured' }),
 }));
 

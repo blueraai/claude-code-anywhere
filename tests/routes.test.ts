@@ -2,9 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EventEmitter } from 'events';
 import type { IncomingMessage, ServerResponse } from 'http';
 
-// We need to test the private readBody function, so we'll need to export it
-// For now, let's create a test module that imports routes and tests via the handlers
-
 // Create a mock request that emits events
 function createMockRequest(
   headers: Record<string, string | string[]> = {}
@@ -47,13 +44,8 @@ function createMockResponse(): ServerResponse & {
   return res;
 }
 
-// Since readBody is not exported, we'll test it indirectly through handleTelnyxWebhook
-// But first, let's create a direct test by temporarily making readBody accessible
-
-// For TDD, we'll write the test assuming readBody will be exported
 describe('parseJSON', () => {
   it('throws SyntaxError on invalid JSON', async () => {
-    // parseJSON should throw instead of returning null
     const { parseJSON } = await import('../src/server/routes.js');
     expect(() => parseJSON('not valid json {{{')).toThrow(SyntaxError);
   });
@@ -67,7 +59,6 @@ describe('parseJSON', () => {
 
 describe('readBody', () => {
   it('rejects when request emits error', async () => {
-    // Import dynamically to get the function after it's exported
     const { readBody } = await import('../src/server/routes.js');
 
     const req = createMockRequest();
@@ -165,7 +156,7 @@ describe('readBody', () => {
   });
 });
 
-describe('handleTelnyxWebhook', () => {
+describe('handleGetResponse', () => {
   beforeEach(() => {
     vi.resetModules();
   });
@@ -174,68 +165,16 @@ describe('handleTelnyxWebhook', () => {
     vi.restoreAllMocks();
   });
 
-  it('returns 401 when signature header is missing', async () => {
-    const { handleTelnyxWebhook } = await import('../src/server/routes.js');
-    const { TelnyxClient } = await import('../src/server/telnyx.js');
+  it('returns null response when no response available', async () => {
+    const { handleGetResponse } = await import('../src/server/routes.js');
 
-    // Request without signature headers
-    const req = createMockRequest({});
+    const req = createMockRequest();
     const res = createMockResponse();
 
-    const mockCtx = {
-      telnyxClient: new TelnyxClient({
-        apiKey: 'test',
-        fromNumber: '+1555000000',
-        userPhone: '+1555111111',
-        webhookPublicKey: 'test-public-key',
-      }),
-      tunnelUrl: null,
-      startTime: Date.now(),
-      webhookPublicKey: 'test-public-key',
-    };
+    handleGetResponse(req, res, 'nonexistent-session');
 
-    const handlerPromise = handleTelnyxWebhook(req, res, mockCtx);
-
-    req.emit('data', Buffer.from('{"data":{}}'));
-    req.emit('end');
-
-    await handlerPromise;
-
-    // Should fail signature validation
-    expect(res._statusCode).toBe(401);
-  });
-
-  it('returns 401 when signature is invalid', async () => {
-    const { handleTelnyxWebhook } = await import('../src/server/routes.js');
-    const { TelnyxClient } = await import('../src/server/telnyx.js');
-
-    // Request with invalid signature
-    const req = createMockRequest({
-      'telnyx-signature-ed25519': 'invalid-signature',
-      'telnyx-timestamp': String(Math.floor(Date.now() / 1000)),
-    });
-    const res = createMockResponse();
-
-    const mockCtx = {
-      telnyxClient: new TelnyxClient({
-        apiKey: 'test',
-        fromNumber: '+1555000000',
-        userPhone: '+1555111111',
-        webhookPublicKey: 'test-public-key',
-      }),
-      tunnelUrl: null,
-      startTime: Date.now(),
-      webhookPublicKey: 'test-public-key',
-    };
-
-    const handlerPromise = handleTelnyxWebhook(req, res, mockCtx);
-
-    req.emit('data', Buffer.from('{"data":{}}'));
-    req.emit('end');
-
-    await handlerPromise;
-
-    // Should fail signature validation
-    expect(res._statusCode).toBe(401);
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { response: unknown };
+    expect(body.response).toBeNull();
   });
 });

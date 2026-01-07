@@ -1,51 +1,47 @@
 /**
  * SMS Bridge Server - HTTP server for Claude Code SMS integration
+ *
+ * Uses macOS Messages.app via imsg CLI for sending and receiving messages.
  */
 import { createServer } from 'http';
-import { loadTelnyxConfig } from '../shared/config.js';
+import { loadMessagesConfig } from '../shared/config.js';
 import { sessionManager } from './sessions.js';
-import { TelnyxClient } from './telnyx.js';
-import { handleTelnyxWebhook, handleSendSMS, handleRegisterSession, handleGetResponse, handleEnableSession, handleDisableSession, handleCheckSessionEnabled, handleEnableGlobal, handleDisableGlobal, handleStatus, handleRoot, } from './routes.js';
+import { MessagesClient } from './messages.js';
+import { handleSendSMS, handleRegisterSession, handleGetResponse, handleEnableSession, handleDisableSession, handleCheckSessionEnabled, handleEnableGlobal, handleDisableGlobal, handleStatus, handleRoot, } from './routes.js';
 const DEFAULT_PORT = 3847;
 /**
  * Bridge server instance
  */
 export class BridgeServer {
     server = null;
-    telnyxClient = null;
-    tunnelUrl = null;
+    messagesClient = null;
     startTime = 0;
     port;
-    webhookPublicKey = '';
     constructor(port = DEFAULT_PORT) {
         this.port = port;
-    }
-    /**
-     * Set the tunnel URL (called by tunnel module)
-     */
-    setTunnelUrl(url) {
-        this.tunnelUrl = url;
-    }
-    /**
-     * Get the tunnel URL
-     */
-    getTunnelUrl() {
-        return this.tunnelUrl;
     }
     /**
      * Start the server
      */
     async start() {
-        // Load Telnyx config
-        const configResult = loadTelnyxConfig();
+        // Load Messages config
+        const configResult = loadMessagesConfig();
         if (!configResult.success) {
             throw new Error(configResult.error);
         }
-        this.telnyxClient = new TelnyxClient(configResult.data);
-        this.webhookPublicKey = configResult.data.webhookPublicKey;
+        this.messagesClient = new MessagesClient(configResult.data);
+        // Initialize the Messages client
+        const initResult = this.messagesClient.initialize();
+        if (!initResult.success) {
+            throw new Error(initResult.error);
+        }
         this.startTime = Date.now();
         // Start session cleanup
         sessionManager.start();
+        // Start polling for incoming messages
+        this.messagesClient.startPolling((message) => {
+            this.handleIncomingMessage(message);
+        });
         // Create HTTP server
         this.server = createServer((req, res) => {
             void this.handleRequest(req, res);
@@ -60,10 +56,59 @@ export class BridgeServer {
         this.printBanner();
     }
     /**
+     * Handle incoming message from Messages.app
+     */
+    handleIncomingMessage(message) {
+        if (this.messagesClient === null)
+            return;
+        const { sessionId, response } = message;
+        console.log(`[server] Incoming message: sessionId=${sessionId ?? 'none'}, response="${response}"`);
+        if (sessionId === null) {
+            // Can't determine which session
+            const activeIds = sessionManager.getActiveSessionIds();
+            if (activeIds.length === 0) {
+                this.messagesClient.sendMessage('No active Claude Code sessions.');
+            }
+            else if (activeIds.length === 1) {
+                // Single session - auto-route the message
+                const singleSessionId = activeIds[0];
+                if (singleSessionId !== undefined) {
+                    sessionManager.storeResponse(singleSessionId, response, 'messages');
+                    console.log(`[server] Response stored for session ${singleSessionId} (auto-routed)`);
+                    this.messagesClient.sendConfirmation(singleSessionId);
+                }
+            }
+            else {
+                const idList = activeIds.map((id) => `CC-${id}`).join(', ');
+                this.messagesClient.sendMessage(`Multiple sessions active. Reply with [CC-ID] prefix. Active: ${idList}`);
+            }
+            return;
+        }
+        if (!sessionManager.hasSession(sessionId)) {
+            const activeIds = sessionManager.getActiveSessionIds();
+            if (activeIds.length === 0) {
+                this.messagesClient.sendMessage(`Session CC-${sessionId} expired. No active sessions.`);
+            }
+            else {
+                const idList = activeIds.map((id) => `CC-${id}`).join(', ');
+                this.messagesClient.sendErrorResponse(`Session CC-${sessionId} expired or not found. Active: ${idList}`);
+            }
+            return;
+        }
+        // Store the response
+        sessionManager.storeResponse(sessionId, response, 'messages');
+        console.log(`[server] Response stored for session ${sessionId}`);
+        this.messagesClient.sendConfirmation(sessionId);
+    }
+    /**
      * Stop the server
      */
     async stop() {
         sessionManager.stop();
+        if (this.messagesClient !== null) {
+            this.messagesClient.dispose();
+            this.messagesClient = null;
+        }
         if (this.server !== null) {
             await new Promise((resolve) => {
                 this.server?.close(() => {
@@ -77,14 +122,12 @@ export class BridgeServer {
      * Get the route context for handlers
      */
     getContext() {
-        if (this.telnyxClient === null) {
+        if (this.messagesClient === null) {
             throw new Error('Server not started');
         }
         return {
-            telnyxClient: this.telnyxClient,
-            tunnelUrl: this.tunnelUrl,
+            messagesClient: this.messagesClient,
             startTime: this.startTime,
-            webhookPublicKey: this.webhookPublicKey,
         };
     }
     /**
@@ -105,11 +148,6 @@ export class BridgeServer {
             const url = new URL(req.url ?? '/', `http://localhost:${String(this.port)}`);
             const path = url.pathname;
             const ctx = this.getContext();
-            // POST /webhook/telnyx
-            if (path === '/webhook/telnyx' && method === 'POST') {
-                await handleTelnyxWebhook(req, res, ctx);
-                return;
-            }
             // POST /api/send
             if (path === '/api/send' && method === 'POST') {
                 await handleSendSMS(req, res, ctx);
@@ -190,16 +228,14 @@ export class BridgeServer {
      * Print server startup banner
      */
     printBanner() {
-        const tunnelInfo = this.tunnelUrl !== null ? `Tunnel: ${this.tunnelUrl}` : 'Tunnel: Not active';
         console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║           Claude Code SMS Bridge Server                        ║
 ╠════════════════════════════════════════════════════════════════╣
+║  Using macOS Messages.app (via imsg)                           ║
 ║  Listening on port ${this.port.toString().padEnd(40)}║
-║  ${tunnelInfo.padEnd(58)}║
 ║                                                                ║
 ║  Endpoints:                                                    ║
-║  • POST /webhook/telnyx  - Configure in Telnyx portal          ║
 ║  • POST /api/send        - Send SMS from hooks                 ║
 ║  • POST /api/session     - Register session for response       ║
 ║  • GET  /api/response/:id - Poll for SMS response              ║

@@ -1,16 +1,68 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getStateDir, getStateFilePath, loadAppConfig } from '../src/shared/config.js';
+import {
+  getStateDir,
+  getStateFilePath,
+  loadAppConfig,
+  loadMessagesConfig,
+} from '../src/shared/config.js';
 
 describe('config', () => {
+  describe('loadMessagesConfig', () => {
+    let originalEnv: Record<string, string | undefined>;
+
+    beforeEach(() => {
+      originalEnv = {
+        SMS_USER_PHONE: process.env['SMS_USER_PHONE'],
+      };
+    });
+
+    afterEach(() => {
+      for (const [key, value] of Object.entries(originalEnv)) {
+        if (value !== undefined) {
+          process.env[key] = value;
+        } else {
+          delete process.env[key];
+        }
+      }
+    });
+
+    it('returns success when SMS_USER_PHONE is set', () => {
+      process.env['SMS_USER_PHONE'] = '+1234567890';
+
+      const result = loadMessagesConfig();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.userPhone).toBe('+1234567890');
+      }
+    });
+
+    it('returns error when SMS_USER_PHONE is not set', () => {
+      delete process.env['SMS_USER_PHONE'];
+
+      const result = loadMessagesConfig();
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain('SMS_USER_PHONE');
+      }
+    });
+
+    it('returns error when SMS_USER_PHONE is empty', () => {
+      process.env['SMS_USER_PHONE'] = '';
+
+      const result = loadMessagesConfig();
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain('SMS_USER_PHONE');
+      }
+    });
+  });
+
   describe('loadAppConfig', () => {
     let originalEnv: Record<string, string | undefined>;
 
     beforeEach(() => {
       originalEnv = {
-        TELNYX_API_KEY: process.env['TELNYX_API_KEY'],
-        TELNYX_FROM_NUMBER: process.env['TELNYX_FROM_NUMBER'],
         SMS_USER_PHONE: process.env['SMS_USER_PHONE'],
-        TELNYX_WEBHOOK_PUBLIC_KEY: process.env['TELNYX_WEBHOOK_PUBLIC_KEY'],
         SMS_BRIDGE_PORT: process.env['SMS_BRIDGE_PORT'],
         SMS_BRIDGE_URL: process.env['SMS_BRIDGE_URL'],
       };
@@ -27,10 +79,7 @@ describe('config', () => {
     });
 
     it('uses custom port in default bridge URL when SMS_BRIDGE_PORT is set', () => {
-      process.env['TELNYX_API_KEY'] = 'test-key';
-      process.env['TELNYX_FROM_NUMBER'] = '+1234567890';
       process.env['SMS_USER_PHONE'] = '+0987654321';
-      process.env['TELNYX_WEBHOOK_PUBLIC_KEY'] = 'test-public-key';
       process.env['SMS_BRIDGE_PORT'] = '4000';
       delete process.env['SMS_BRIDGE_URL'];
 
@@ -43,10 +92,7 @@ describe('config', () => {
     });
 
     it('uses default port 3847 in bridge URL when SMS_BRIDGE_PORT is not set', () => {
-      process.env['TELNYX_API_KEY'] = 'test-key';
-      process.env['TELNYX_FROM_NUMBER'] = '+1234567890';
       process.env['SMS_USER_PHONE'] = '+0987654321';
-      process.env['TELNYX_WEBHOOK_PUBLIC_KEY'] = 'test-public-key';
       delete process.env['SMS_BRIDGE_PORT'];
       delete process.env['SMS_BRIDGE_URL'];
 
@@ -59,10 +105,7 @@ describe('config', () => {
     });
 
     it('uses explicit SMS_BRIDGE_URL when provided', () => {
-      process.env['TELNYX_API_KEY'] = 'test-key';
-      process.env['TELNYX_FROM_NUMBER'] = '+1234567890';
       process.env['SMS_USER_PHONE'] = '+0987654321';
-      process.env['TELNYX_WEBHOOK_PUBLIC_KEY'] = 'test-public-key';
       process.env['SMS_BRIDGE_PORT'] = '4000';
       process.env['SMS_BRIDGE_URL'] = 'https://my-tunnel.example.com';
 
@@ -71,6 +114,13 @@ describe('config', () => {
       if (result.success) {
         expect(result.data.bridgeUrl).toBe('https://my-tunnel.example.com');
       }
+    });
+
+    it('returns error when SMS_USER_PHONE is missing', () => {
+      delete process.env['SMS_USER_PHONE'];
+
+      const result = loadAppConfig();
+      expect(result.success).toBe(false);
     });
   });
 

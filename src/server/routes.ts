@@ -3,11 +3,10 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'http';
-import type { ServerStatus, HookEvent, TelnyxWebhookPayload } from '../shared/types.js';
+import type { ServerStatus, HookEvent } from '../shared/types.js';
 import { sessionManager } from './sessions.js';
 import { stateManager } from './state.js';
-import { TelnyxClient } from './telnyx.js';
-import { verifyTelnyxSignature } from './webhook-signature.js';
+import { MessagesClient } from './messages.js';
 
 const VALID_HOOK_EVENTS = new Set<string>(['Notification', 'Stop', 'PreToolUse', 'UserPromptSubmit']);
 
@@ -22,10 +21,8 @@ function isHookEvent(value: unknown): value is HookEvent {
  * Route handler context
  */
 export interface RouteContext {
-  telnyxClient: TelnyxClient;
-  tunnelUrl: string | null;
+  messagesClient: MessagesClient;
   startTime: number;
-  webhookPublicKey: string;
 }
 
 /** Maximum request body size (1MB) */
@@ -89,135 +86,10 @@ function sendJSON(res: ServerResponse, statusCode: number, data: unknown): void 
 }
 
 /**
- * Send plain text response (for Telnyx webhook acknowledgment)
- */
-function sendText(res: ServerResponse, statusCode: number, message: string): void {
-  res.writeHead(statusCode, { 'Content-Type': 'text/plain' });
-  res.end(message);
-}
-
-/**
  * Send error response
  */
 function sendError(res: ServerResponse, statusCode: number, error: string): void {
   sendJSON(res, statusCode, { error });
-}
-
-/**
- * Type guard for Telnyx webhook payload
- */
-function isTelnyxWebhookPayload(value: unknown): value is TelnyxWebhookPayload {
-  if (typeof value !== 'object' || value === null) return false;
-  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
-  const data = value.data;
-  if (!('event_type' in data) || typeof data.event_type !== 'string') return false;
-  if (!('payload' in data) || typeof data.payload !== 'object' || data.payload === null) return false;
-  const payload = data.payload;
-  if (!('from' in payload) || typeof payload.from !== 'object' || payload.from === null) return false;
-  if (!('phone_number' in payload.from) || typeof payload.from.phone_number !== 'string') return false;
-  if (!('text' in payload) || typeof payload.text !== 'string') return false;
-  return true;
-}
-
-/**
- * Handle POST /webhook/telnyx - Incoming SMS from Telnyx
- */
-export async function handleTelnyxWebhook(
-  req: IncomingMessage,
-  res: ServerResponse,
-  ctx: RouteContext
-): Promise<void> {
-  // Extract signature headers
-  const signatureHeader = req.headers['telnyx-signature-ed25519'];
-  const timestampHeader = req.headers['telnyx-timestamp'];
-
-  // Read body first (needed for signature verification)
-  const body = await readBody(req);
-
-  // Verify webhook signature (fail-fast per CLAUDE.md)
-  try {
-    const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
-    const timestamp = Array.isArray(timestampHeader) ? timestampHeader[0] : timestampHeader;
-
-    if (!verifyTelnyxSignature(body, signature ?? '', timestamp ?? '', ctx.webhookPublicKey)) {
-      console.warn('[webhook] Invalid webhook signature');
-      sendError(res, 401, 'Invalid webhook signature');
-      return;
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Signature verification failed';
-    console.warn(`[webhook] Signature verification error: ${message}`);
-    sendError(res, 401, message);
-    return;
-  }
-
-  let rawData: unknown;
-  try {
-    rawData = parseJSON(body);
-  } catch (error) {
-    console.warn('[webhook] Invalid JSON in Telnyx webhook:', error);
-    sendError(res, 400, 'Invalid JSON');
-    return;
-  }
-
-  if (!isTelnyxWebhookPayload(rawData)) {
-    console.warn('[webhook] Invalid Telnyx webhook payload');
-    sendError(res, 400, 'Invalid webhook payload');
-    return;
-  }
-
-  // Only process message.received events
-  if (rawData.data.event_type !== 'message.received') {
-    sendText(res, 200, '');
-    return;
-  }
-
-  const from = rawData.data.payload.from.phone_number;
-  const messageBody = rawData.data.payload.text;
-
-  console.log(`[webhook] SMS received from ${from}: ${messageBody}`);
-
-  // Verify sender (optional but recommended)
-  if (!ctx.telnyxClient.verifyFromNumber(from)) {
-    console.warn(`[webhook] Unauthorized sender: ${from}`);
-    sendText(res, 200, '');
-    return;
-  }
-
-  // Parse session ID from message
-  const { sessionId, response } = sessionManager.parseSessionFromSMS(messageBody);
-
-  if (sessionId === null) {
-    // Can't determine which session
-    const activeIds = sessionManager.getActiveSessionIds();
-    if (activeIds.length === 0) {
-      await ctx.telnyxClient.sendSMS('No active Claude Code sessions.');
-    } else {
-      const idList = activeIds.map((id) => `CC-${id}`).join(', ');
-      await ctx.telnyxClient.sendSMS(`Multiple sessions active. Reply with [CC-ID] prefix. Active: ${idList}`);
-    }
-    sendText(res, 200, '');
-    return;
-  }
-
-  if (!sessionManager.hasSession(sessionId)) {
-    const activeIds = sessionManager.getActiveSessionIds();
-    if (activeIds.length === 0) {
-      await ctx.telnyxClient.sendSMS(`Session CC-${sessionId} expired. No active sessions.`);
-    } else {
-      const idList = activeIds.map((id) => `CC-${id}`).join(', ');
-      await ctx.telnyxClient.sendSMS(`❌ Session CC-${sessionId} expired or not found. Active: ${idList}`);
-    }
-    sendText(res, 200, '');
-    return;
-  }
-
-  // Store the response
-  sessionManager.storeResponse(sessionId, response, from);
-  console.log(`[webhook] Response stored for session ${sessionId}`);
-
-  await ctx.telnyxClient.sendSMS(`✓ Response received for CC-${sessionId}`);
-  sendText(res, 200, '');
 }
 
 /**
@@ -284,7 +156,7 @@ export async function handleSendSMS(
   }
 
   // Send the SMS
-  const result = await ctx.telnyxClient.sendHookMessage(sessionId, event, message);
+  const result = ctx.messagesClient.sendHookMessage(sessionId, event, message);
 
   if (result.success) {
     sendJSON(res, 200, { sent: true, messageId: result.data });
@@ -350,7 +222,7 @@ export async function handleRegisterSession(
   sessionManager.registerSession(sessionId, event, prompt);
 
   // Send the SMS
-  const result = await ctx.telnyxClient.sendHookMessage(sessionId, event, prompt);
+  const result = ctx.messagesClient.sendHookMessage(sessionId, event, prompt);
 
   if (result.success) {
     sendJSON(res, 200, { registered: true, messageId: result.data });
@@ -451,7 +323,7 @@ export function handleStatus(_req: IncomingMessage, res: ServerResponse, ctx: Ro
     activeSessions: sessionManager.getSessionCount(),
     pendingResponses: sessionManager.getPendingResponseCount(),
     uptime: Math.floor((Date.now() - ctx.startTime) / 1000),
-    tunnelUrl: ctx.tunnelUrl,
+    tunnelUrl: null, // No longer using tunnel
   };
   sendJSON(res, 200, status);
 }
@@ -463,8 +335,8 @@ export function handleRoot(_req: IncomingMessage, res: ServerResponse): void {
   sendJSON(res, 200, {
     name: 'Claude Code SMS Bridge',
     version: '0.1.0',
+    backend: 'macOS Messages (imsg)',
     endpoints: [
-      'POST /webhook/telnyx - Telnyx webhook for incoming SMS',
       'POST /api/send - Send SMS for hook event',
       'POST /api/session - Register session waiting for response',
       'GET /api/response/:sessionId - Poll for SMS response',

@@ -1,5 +1,7 @@
 /**
  * Claude SMS - SMS notifications and bidirectional communication for Claude Code
+ *
+ * Uses macOS Messages.app via imsg CLI for sending/receiving messages.
  */
 
 // Re-export types
@@ -10,22 +12,19 @@ export type {
   SMSResponse,
   GlobalState,
   ServerStatus,
-  TelnyxConfig,
+  MessagesConfig,
   AppConfig,
   Result,
   SendSMSRequest,
   RegisterSessionRequest,
-  TelnyxWebhookPayload,
   ParsedSMS,
 } from './shared/types.js';
 
 // Re-export config utilities
-export { loadTelnyxConfig, loadAppConfig, getStateDir, getStateFilePath } from './shared/config.js';
+export { loadMessagesConfig, loadAppConfig, getStateDir, getStateFilePath } from './shared/config.js';
 
 // Re-export server components
 export { createBridgeServer, BridgeServer } from './server/index.js';
-export { createTunnel, CloudflaredTunnel } from './server/tunnel.js';
 export { sessionManager } from './server/sessions.js';
 export { stateManager, loadState, saveState, enableGlobal, disableGlobal } from './server/state.js';
-export { TelnyxClient, formatSMSMessage } from './server/telnyx.js';
-export { verifyTelnyxSignature } from './server/webhook-signature.js';
+export { MessagesClient, formatMessage, checkImsgInstalled } from './server/messages.js';

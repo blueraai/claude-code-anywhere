@@ -2,57 +2,27 @@
  * Configuration loading from environment variables
  */
 
-import type { AppConfig, TelnyxConfig, Result } from './types.js';
+import type { AppConfig, MessagesConfig, Result } from './types.js';
 
 const DEFAULT_PORT = 3847;
 
 /**
- * Load Telnyx configuration from environment variables
+ * Load Messages configuration from environment variables
  */
-export function loadTelnyxConfig(): Result<TelnyxConfig, string> {
-  const apiKey = process.env['TELNYX_API_KEY'];
-  const fromNumber = process.env['TELNYX_FROM_NUMBER'];
+export function loadMessagesConfig(): Result<MessagesConfig, string> {
   const userPhone = process.env['SMS_USER_PHONE'];
-  const webhookPublicKey = process.env['TELNYX_WEBHOOK_PUBLIC_KEY'];
 
-  const missing: string[] = [];
-
-  if (apiKey === undefined || apiKey === '') {
-    missing.push('TELNYX_API_KEY');
-  }
-  if (fromNumber === undefined || fromNumber === '') {
-    missing.push('TELNYX_FROM_NUMBER');
-  }
   if (userPhone === undefined || userPhone === '') {
-    missing.push('SMS_USER_PHONE');
-  }
-  if (webhookPublicKey === undefined || webhookPublicKey === '') {
-    missing.push('TELNYX_WEBHOOK_PUBLIC_KEY');
-  }
-
-  if (
-    apiKey === undefined ||
-    apiKey === '' ||
-    fromNumber === undefined ||
-    fromNumber === '' ||
-    userPhone === undefined ||
-    userPhone === '' ||
-    webhookPublicKey === undefined ||
-    webhookPublicKey === ''
-  ) {
     return {
       success: false,
-      error: `Missing required environment variables: ${missing.join(', ')}`,
+      error: 'Missing required environment variable: SMS_USER_PHONE',
     };
   }
 
   return {
     success: true,
     data: {
-      apiKey,
-      fromNumber,
       userPhone,
-      webhookPublicKey,
     },
   };
 }
@@ -61,10 +31,10 @@ export function loadTelnyxConfig(): Result<TelnyxConfig, string> {
  * Load full application configuration
  */
 export function loadAppConfig(): Result<AppConfig, string> {
-  const telnyxResult = loadTelnyxConfig();
+  const messagesResult = loadMessagesConfig();
 
-  if (!telnyxResult.success) {
-    return telnyxResult;
+  if (!messagesResult.success) {
+    return messagesResult;
   }
 
   const portEnv = process.env['SMS_BRIDGE_PORT'];
@@ -82,7 +52,7 @@ export function loadAppConfig(): Result<AppConfig, string> {
   return {
     success: true,
     data: {
-      telnyx: telnyxResult.data,
+      messages: messagesResult.data,
       bridgeUrl,
       port,
     },

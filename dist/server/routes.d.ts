@@ -2,15 +2,13 @@
  * HTTP API routes for the SMS bridge server
  */
 import type { IncomingMessage, ServerResponse } from 'http';
-import { TelnyxClient } from './telnyx.js';
+import { MessagesClient } from './messages.js';
 /**
  * Route handler context
  */
 export interface RouteContext {
-    telnyxClient: TelnyxClient;
-    tunnelUrl: string | null;
+    messagesClient: MessagesClient;
     startTime: number;
-    webhookPublicKey: string;
 }
 /** Maximum request body size (1MB) */
 export declare const MAX_BODY_SIZE: number;
@@ -23,10 +21,6 @@ export declare function parseJSON(body: string): unknown;
  * Read request body with error handling and size limit
  */
 export declare function readBody(req: IncomingMessage): Promise<string>;
-/**
- * Handle POST /webhook/telnyx - Incoming SMS from Telnyx
- */
-export declare function handleTelnyxWebhook(req: IncomingMessage, res: ServerResponse, ctx: RouteContext): Promise<void>;
 /**
  * Handle POST /api/send - Send SMS for a hook event
  */

@@ -1,29 +1,25 @@
 /**
  * SMS Bridge Server - HTTP server for Claude Code SMS integration
+ *
+ * Uses macOS Messages.app via imsg CLI for sending and receiving messages.
  */
 /**
  * Bridge server instance
  */
 export declare class BridgeServer {
     private server;
-    private telnyxClient;
-    private tunnelUrl;
+    private messagesClient;
     private startTime;
     private readonly port;
-    private webhookPublicKey;
     constructor(port?: number);
-    /**
-     * Set the tunnel URL (called by tunnel module)
-     */
-    setTunnelUrl(url: string): void;
-    /**
-     * Get the tunnel URL
-     */
-    getTunnelUrl(): string | null;
     /**
      * Start the server
      */
     start(): Promise<void>;
+    /**
+     * Handle incoming message from Messages.app
+     */
+    private handleIncomingMessage;
     /**
      * Stop the server
      */
