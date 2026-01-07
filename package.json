@@ -1,6 +1,6 @@
 {
   "name": "claude-sms",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "SMS notifications and bidirectional communication for Claude Code via Telnyx",
   "type": "module",
   "bin": {

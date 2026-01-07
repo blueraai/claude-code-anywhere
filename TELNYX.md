@@ -8,7 +8,7 @@ Complete guide to setting up Telnyx for Claude SMS.
 - [2. Purchase Phone Number](#2-purchase-phone-number)
 - [3. Create Messaging Profile](#3-create-messaging-profile)
 - [4. Generate API Key](#4-generate-api-key)
-- [5. 10DLC Registration (US Only)](#5-10dlc-registration-us-only)
+- [5. US Carrier Registration](#5-us-carrier-registration)
 - [6. Webhook Configuration](#6-webhook-configuration)
 - [7. Environment Variables](#7-environment-variables)
 - [8. Cost Breakdown](#8-cost-breakdown)
@@ -27,9 +27,13 @@ Complete guide to setting up Telnyx for Claude SMS.
 
 ## 2. Purchase Phone Number
 
+> **For US SMS: We strongly recommend toll-free numbers** (see [US Carrier Registration](#5-us-carrier-registration) for why)
+
 1. In [Mission Control Portal](https://portal.telnyx.com), go to **Numbers** → **Search & Buy**
-2. Search for numbers (filter by SMS capability)
-3. Purchase a number (~$1/month for US local)
+2. Search for numbers:
+   - **Recommended**: Filter for toll-free (800, 888, 877, 866, 855, 844, 833)
+   - Alternative: Local 10-digit numbers (requires complex 10DLC registration)
+3. Purchase a number (~$1-2/month)
 
 ---
 
@@ -62,11 +66,40 @@ The key starts with `KEY...`
 
 ---
 
-## 5. 10DLC Registration (US Only)
+## 5. US Carrier Registration
 
-> **Required for US SMS.** Without 10DLC registration, messages will be blocked by carriers with error: `"Not 10DLC registered" (code 40010)`
+US carriers require registration for A2P (Application-to-Person) messaging. You have two options:
 
-### Step A: Register Your Brand ($4.50 one-time)
+| | Toll-Free (Recommended) | 10DLC |
+|---|---|---|
+| **Registration** | Single form per number | Brand + Campaign + opt-in forms + privacy policy |
+| **Cost** | Free to register | $4.50 brand + $15 campaign + $1.50/mo |
+| **Approval** | Usually 1-2 days | Days to weeks, can be rejected for minor issues |
+| **Throughput** | 1,200 msg/min | Up to 6 msg/min (varies by trust score) |
+
+### Option A: Toll-Free Verification (Recommended)
+
+Toll-free numbers are **NOT subject to 10DLC requirements** and have a much simpler registration process.
+
+1. Go to **Messaging** → **Toll-Free Verification**
+2. Click **Verify Number** for your toll-free number
+3. Fill out the single verification form:
+   - **Business name**: Your name or company
+   - **Use case**: `Account notifications for developer tools`
+   - **Sample message**: `[CC-abc123] Task completed. Reply with your response.`
+   - **Message volume**: Low (estimate monthly volume)
+4. Submit and wait for approval (typically 1-2 business days)
+
+That's it. No brand registration, no campaign forms, no opt-in screenshots.
+
+### Option B: 10DLC Registration (Local Numbers Only)
+
+<details>
+<summary><b>Click to expand 10DLC instructions (not recommended)</b></summary>
+
+> **Warning**: 10DLC has extensive compliance requirements including opt-in form screenshots, privacy policy review, and specific message language. Campaigns can be rejected for minor issues.
+
+#### Step 1: Register Your Brand ($4.50 one-time)
 
 1. Go to **Messaging** → **10DLC** → **Brands** → **Create Brand**
 2. Provide business information:
@@ -75,49 +108,29 @@ The key starts with `KEY...`
 3. Submit and wait for verification (usually instant, sometimes 24-48 hours)
 4. Status should show **Verified** (green dot)
 
-### Step B: Create a Campaign ($15 one-time + $1.50/month)
-
-Once your brand is verified, create a campaign:
+#### Step 2: Create a Campaign ($15 one-time + $1.50/month)
 
 1. Click on your brand → **Create Campaign**
+2. Select use case: `Low Volume Mixed` → `Account Notification`
+3. Vertical: `Information Technology Services`
 
-#### Use Case Selection
-
-| Field | Value |
-|-------|-------|
-| **Use case** (first dropdown) | `Low Volume Mixed` |
-| **Use case type** (second dropdown) | `Account Notification` |
-| **Vertical** | `Information Technology Services` |
-
-#### Campaign Description
-
+**Campaign Description:**
 ```
 Developer tool notifications. Software sends automated alerts to the
 developer's own mobile phone for task status updates, completion notices,
 and approval requests. Single recipient (developer only).
 ```
 
-#### Opt In Workflow Description
-
+**Opt In Workflow Description:**
 ```
 Digital: Developer configures their own phone number in software settings
 and explicitly enables SMS notifications. Only the account owner receives
 messages. No third-party recipients.
 ```
 
-#### Keywords (use defaults)
-
-| Field | Value |
-|-------|-------|
-| Opt in keywords | `START,YES,Y` |
-| Opt out keywords | `STOP,UNSUBSCRIBE` |
-| Help keywords | `HELP` |
-
-#### Auto-responses
-
-**Opt in message:**
+**Opt in message** (must include "Message frequency varies"):
 ```
-Claude SMS: You've enabled notifications. Reply HELP for help or STOP to unsubscribe. Msg&data rates may apply.
+Claude SMS: You've enabled notifications. Message frequency varies. Reply HELP for help or STOP to unsubscribe. Msg&data rates may apply.
 ```
 
 **Opt out message:**
@@ -130,34 +143,27 @@ Claude SMS: You are unsubscribed and will receive no further messages.
 Claude SMS: For help, visit github.com/chris-bluera/claude-sms
 ```
 
-#### Sample Messages
-
-**Message 1:**
+**Sample Message:**
 ```
 [CC-abc123] ✅ Session ended: Task completed successfully. Reply with your response. Reply STOP to opt out.
 ```
 
-#### Additional Fields
+**Campaign attributes** (all No):
+- Embedded Link: No
+- Embedded Phone Number: No
+- Number Pooling: No
+- Age-Gated Content: No
+- Direct Lending or Loan Arrangement: No
 
-| Field | Value |
-|-------|-------|
-| **Embedded link** (text field) | Leave blank |
-| **Embedded Link** | No |
-| **Embedded Phone Number** | No |
-| **Number Pooling** | No |
-| **Age-Gated Content** | No |
-| **Direct Lending or Loan Arrangement** | No |
-| **Webhook URL** | Leave blank |
-| **Webhook Failover URL** | Leave blank |
+**Additional requirements** (common rejection reasons):
+- Opt-in form screenshot showing phone field and SMS consent language ([example](https://support.telnyx.com/en/articles/10684260-10dlc-opt-in-form))
+- Compliant privacy policy ([requirements](https://support.telnyx.com/en/articles/10645583-10dlc-privacy-policy))
 
-Submit the campaign for review (1-2 business days).
+#### Step 3: Assign Number to Campaign
 
-### Step C: Assign Number to Campaign
+Once campaign is approved, add your phone number to the campaign.
 
-Once campaign is approved:
-
-1. Go to campaign settings
-2. Add your phone number to the campaign
+</details>
 
 ---
 
@@ -189,7 +195,7 @@ For persistent URLs, see the [Persistent Tunnel URL](./README.md#persistent-tunn
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `TELNYX_API_KEY` | Yes | API Key from Auth V2 (starts with `KEY...`) |
-| `TELNYX_FROM_NUMBER` | Yes | Your Telnyx number in E.164 format (e.g., `+15551234567`) |
+| `TELNYX_FROM_NUMBER` | Yes | Your Telnyx number in E.164 format (e.g., `+18005551234`) |
 | `SMS_USER_PHONE` | Yes | Your mobile in E.164 format (e.g., `+15559876543`) |
 | `TELNYX_WEBHOOK_PUBLIC_KEY` | Yes | Public key for webhook signature verification |
 
@@ -197,7 +203,7 @@ Example `.env`:
 
 ```bash
 TELNYX_API_KEY=KEY019B9369154442FBFBA7CDBDF803514C_xxxxxxxxxx
-TELNYX_FROM_NUMBER=+15551234567
+TELNYX_FROM_NUMBER=+18005551234
 SMS_USER_PHONE=+15559876543
 TELNYX_WEBHOOK_PUBLIC_KEY=zQuwEq2A2KxzDWGqPPJ7gJhuQ6gFp51w9WxqDhPNVDM=
 ```
@@ -206,15 +212,28 @@ TELNYX_WEBHOOK_PUBLIC_KEY=zQuwEq2A2KxzDWGqPPJ7gJhuQ6gFp51w9WxqDhPNVDM=
 
 ## 8. Cost Breakdown
 
+### With Toll-Free (Recommended)
+
 | Item | Cost |
 |------|------|
-| Telnyx phone number | ~$1/month |
-| Telnyx SMS (US) | ~$0.003-0.005/message |
+| Telnyx toll-free number | ~$2/month |
+| Telnyx SMS (US) | ~$0.004/message |
+| Toll-free verification | Free |
+| Cloudflared tunnel | Free |
+| **First month** | **~$3** |
+| **Ongoing monthly** | **~$3** |
+
+### With 10DLC (Local Number)
+
+| Item | Cost |
+|------|------|
+| Telnyx local number | ~$1/month |
+| Telnyx SMS (US) | ~$0.003/message |
 | 10DLC brand registration | $4.50 one-time |
 | 10DLC campaign review | $15 one-time |
 | 10DLC campaign (Low Volume) | $1.50/month |
 | Cloudflared tunnel | Free |
-| **First month (setup + use)** | **~$25** |
+| **First month** | **~$25** |
 | **Ongoing monthly** | **~$3-5** |
 
 ---
@@ -223,12 +242,11 @@ TELNYX_WEBHOOK_PUBLIC_KEY=zQuwEq2A2KxzDWGqPPJ7gJhuQ6gFp51w9WxqDhPNVDM=
 
 ### "Not 10DLC registered" error (code 40010)
 
-Your message was rejected because the number isn't registered for A2P messaging.
+This error means you're using a local (10-digit) number without completed 10DLC registration.
 
-**Checklist:**
-- [ ] Brand status is "Verified"
-- [ ] Campaign status is "Approved"
-- [ ] Phone number is assigned to the campaign
+**Solutions:**
+1. **Switch to toll-free** (recommended) - Buy a toll-free number and complete the simpler verification
+2. **Complete 10DLC** - See [Option B](#option-b-10dlc-registration-local-numbers-only) above
 
 ### "delivery_failed" status
 
@@ -254,11 +272,26 @@ Look at the `errors` array for the specific reason.
 - Check `TELNYX_WEBHOOK_PUBLIC_KEY` is set correctly
 - Look at server logs for signature verification errors
 
+### Toll-free verification rejected
+
+Common reasons:
+- Vague use case description (be specific about what messages you'll send)
+- Sample message doesn't match actual use case
+- Missing opt-out language in sample message
+
 ### SMS sent but not delivered
 
 Common causes:
-- Carrier filtering (10DLC not complete)
+- Carrier filtering (registration not complete)
 - Invalid recipient number
 - Insufficient account balance
 
 Check message status via API to see delivery details.
+
+---
+
+## Resources
+
+- [Telnyx 10DLC vs Toll-Free Guide](https://telnyx.com/resources/10dlc-vs-toll-free-isvs)
+- [Toll-Free Verification Docs](https://developers.telnyx.com/docs/messaging/toll-free-verification)
+- [10DLC Compliance Guide](https://support.telnyx.com/en/collections/3147004-10dlc-and-toll-free-text-messaging-compliance-guide)

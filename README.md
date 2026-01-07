@@ -68,9 +68,11 @@ See **[TELNYX.md](./TELNYX.md)** for complete setup instructions including:
 
 - Account creation and phone number purchase
 - Messaging profile configuration
-- **10DLC registration** (required for US SMS) with step-by-step form guidance
+- **US carrier registration** — toll-free (recommended) or 10DLC
 - Webhook and signature verification setup
 - Troubleshooting common issues
+
+> **Tip**: For US SMS, use a **toll-free number** instead of a local number. Toll-free verification is a single form vs. the complex 10DLC registration process.
 
 ---
 
@@ -367,12 +369,14 @@ Settings are stored in `~/.claude/claude-sms/state.json`:
 <details>
 <summary><b>🇺🇸 US Messages Not Delivering</b></summary>
 
-See [TELNYX.md - 10DLC Registration](./TELNYX.md#5-10dlc-registration-us-only) for complete setup guide.
+See [TELNYX.md - US Carrier Registration](./TELNYX.md#5-us-carrier-registration) for complete setup guide.
 
-**Quick checklist:**
-1. Brand status is "Verified"
-2. Campaign status is "Approved"
-3. Phone number is assigned to campaign
+**Recommended fix:** Switch to a toll-free number with simple verification (no 10DLC needed).
+
+If using 10DLC (local number):
+1. Brand status must be "Verified"
+2. Campaign status must be "Approved"
+3. Phone number must be assigned to campaign
 
 US carriers block all unregistered A2P traffic with error code `40010`.
 </details>
@@ -439,15 +443,27 @@ This provides:
 
 ## 💰 Cost Estimate
 
+### With Toll-Free Number (Recommended)
+
 | Service | Cost |
 |---------|------|
-| Telnyx phone number | ~$1/month |
-| Telnyx SMS (US) | ~$0.003-0.005/message |
+| Telnyx toll-free number | ~$2/month |
+| Telnyx SMS (US) | ~$0.004/message |
+| Toll-free verification | Free |
+| Cloudflared tunnel | Free |
+| **Monthly total** | **~$3** |
+
+### With Local Number (10DLC)
+
+| Service | Cost |
+|---------|------|
+| Telnyx local number | ~$1/month |
+| Telnyx SMS (US) | ~$0.003/message |
 | 10DLC brand registration | $4.50 one-time |
 | 10DLC campaign review | $15 one-time |
 | 10DLC campaign (Low Volume) | $1.50/month |
 | Cloudflared tunnel | Free |
-| **First month (setup + use)** | **~$25** |
+| **First month** | **~$25** |
 | **Ongoing monthly** | **~$3-5** |
 
 ---
