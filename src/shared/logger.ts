@@ -81,14 +81,9 @@ function writeLog(level: LogLevel, component: string, message: string, data?: un
     console.log(formatted);
   }
 
-  // Write to file
-  try {
-    ensureLogsDir();
-    appendFileSync(getLogFilePath(), `${formatted}\n`);
-  } catch (error) {
-    // Don't crash if logging fails
-    console.error(`[logger] Failed to write to log file: ${String(error)}`);
-  }
+  // Write to file (fail fast if logging fails)
+  ensureLogsDir();
+  appendFileSync(getLogFilePath(), `${formatted}\n`);
 }
 
 interface Logger {

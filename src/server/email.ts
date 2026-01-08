@@ -24,6 +24,12 @@ type NodemailerTransporter = ReturnType<typeof nodemailer.createTransport>;
 const log = createLogger('email');
 
 /**
+ * Maximum number of processed message IDs to keep in memory.
+ * When exceeded, the oldest half are pruned to prevent unbounded memory growth.
+ */
+const MAX_PROCESSED_MESSAGE_IDS = 10000;
+
+/**
  * Configuration for Email client
  */
 export interface EmailConfig {
@@ -67,7 +73,7 @@ function getEventEmoji(event: HookEvent): string {
     case 'UserPromptSubmit':
       return '🤖';
     default:
-      return '💬';
+      throw new Error(`Unexpected HookEvent: ${String(event)}`);
   }
 }
 
@@ -82,7 +88,7 @@ function getEventHeader(event: HookEvent): string {
     case 'UserPromptSubmit':
       return 'Claude needs input';
     default:
-      return 'Message';
+      throw new Error(`Unexpected HookEvent: ${String(event)}`);
   }
 }
 
@@ -309,7 +315,7 @@ export class EmailClient implements Channel {
           }
 
           if (messageId !== undefined) {
-            this.processedMessageIds.add(messageId);
+            this.addProcessedMessageId(messageId);
           }
 
           const subject = msg.envelope.subject ?? '';
@@ -361,9 +367,11 @@ export class EmailClient implements Channel {
 
       await client.logout();
     } catch (error) {
-      // Log polling errors but continue - will retry next interval
+      // Fail fast: stop polling and record the error
       const errMsg = error instanceof Error ? error.message : 'Unknown error';
-      log.error(`Poll error (will retry): ${errMsg}`);
+      log.error(`Poll error: ${errMsg}`);
+      this.lastError = errMsg;
+      this.stopPolling();
 
       // Try to close the connection if it exists
       if (client !== null) {
@@ -493,6 +501,25 @@ export class EmailClient implements Channel {
           return String.fromCharCode(parseInt(hex, 16));
         })
     );
+  }
+
+  /**
+   * Add a message ID to the processed set, pruning old entries if needed.
+   * When the set exceeds MAX_PROCESSED_MESSAGE_IDS, the oldest half is removed.
+   */
+  addProcessedMessageId(messageId: string): void {
+    // Prune if we've exceeded the max size
+    if (this.processedMessageIds.size >= MAX_PROCESSED_MESSAGE_IDS) {
+      const entries = Array.from(this.processedMessageIds);
+      const keepCount = Math.floor(MAX_PROCESSED_MESSAGE_IDS / 2);
+      // Keep the most recent half (entries at the end of the array)
+      const recentEntries = entries.slice(-keepCount);
+      this.processedMessageIds.clear();
+      for (const entry of recentEntries) {
+        this.processedMessageIds.add(entry);
+      }
+    }
+    this.processedMessageIds.add(messageId);
   }
 
   /**

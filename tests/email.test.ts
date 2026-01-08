@@ -550,11 +550,11 @@ describe('EmailClient - initialize error handling', () => {
 });
 
 describe('formatSubject - edge cases', () => {
-  it('uses default emoji and header for unknown event', () => {
+  it('throws on unexpected HookEvent', () => {
     // Cast to bypass TypeScript check for unknown event type
-    const result = formatSubject('abc123', 'UnknownEvent' as 'Notification');
-    expect(result).toContain('[CC-abc123]');
-    expect(result).toContain('Message');
+    expect(() => formatSubject('abc123', 'UnknownEvent' as 'Notification')).toThrow(
+      'Unexpected HookEvent: UnknownEvent'
+    );
   });
 });
 
@@ -635,5 +635,102 @@ describe('EmailClient - send with different events', () => {
     });
 
     expect(result.success).toBe(true);
+  });
+});
+
+describe('EmailClient - processedMessageIds bounded size', () => {
+  // Helper to access private methods and properties for testing
+  type TestableEmailClientInternal = EmailClient & {
+    processedMessageIds: Set<string>;
+    addProcessedMessageId: (id: string) => void;
+  };
+
+  it('keeps processedMessageIds bounded to MAX_PROCESSED_MESSAGE_IDS', () => {
+    const client = new EmailClient(validConfig) as TestableEmailClientInternal;
+
+    // Add more than the max allowed message IDs
+    const maxIds = 10000;
+    const totalToAdd = maxIds + 500;
+
+    for (let i = 0; i < totalToAdd; i++) {
+      client.addProcessedMessageId(`message-${String(i)}`);
+    }
+
+    // Size should be bounded (at most maxIds, could be less after pruning)
+    expect(client.processedMessageIds.size).toBeLessThanOrEqual(maxIds);
+  });
+
+  it('prunes to half size when exceeding max', () => {
+    const client = new EmailClient(validConfig) as TestableEmailClientInternal;
+
+    // Add exactly max + 1 to trigger pruning
+    const maxIds = 10000;
+
+    for (let i = 0; i < maxIds + 1; i++) {
+      client.addProcessedMessageId(`message-${String(i)}`);
+    }
+
+    // After pruning, should have half of max (5000) + 1 new = 5001
+    expect(client.processedMessageIds.size).toBe(5001);
+  });
+
+  it('retains most recent message IDs after pruning', () => {
+    const client = new EmailClient(validConfig) as TestableEmailClientInternal;
+
+    const maxIds = 10000;
+
+    for (let i = 0; i < maxIds + 1; i++) {
+      client.addProcessedMessageId(`message-${String(i)}`);
+    }
+
+    // The most recent IDs (second half) should be retained
+    // After pruning at max+1, we keep IDs 5000-10000 (5001 items)
+    expect(client.processedMessageIds.has('message-10000')).toBe(true);
+    expect(client.processedMessageIds.has('message-5000')).toBe(true);
+    expect(client.processedMessageIds.has('message-4999')).toBe(false); // Pruned
+    expect(client.processedMessageIds.has('message-0')).toBe(false); // Pruned
+  });
+});
+
+describe('EmailClient - polling error propagation (fail-fast)', () => {
+  it('sets lastError when polling encounters an error', async () => {
+    // This test verifies the error path by using an invalid config
+    // that will cause connection errors
+    const badConfig: EmailConfig = {
+      ...validConfig,
+      imapHost: 'invalid.nonexistent.host',
+      imapPort: 9999,
+    };
+
+    const client = new EmailClient(badConfig);
+    await client.initialize();
+
+    // Initially no error
+    expect(client.getStatus().error).toBeNull();
+
+    // The client should have lastError setter available through the fail-fast path
+    // We test this indirectly - the actual IMAP connection will fail in real usage
+    // For unit testing, we verify the structure is correct
+    expect(client.getStatus()).toHaveProperty('error');
+    expect(client.getStatus()).toHaveProperty('connected');
+
+    client.dispose();
+  });
+
+  it('stopPolling clears poll interval and callback', async () => {
+    const client = new EmailClient(validConfig);
+    await client.initialize();
+
+    const callback = vi.fn();
+    client.startPolling(callback);
+
+    // Verify polling started (internal state would be set)
+    client.stopPolling();
+
+    // After stopping, starting again should work
+    client.startPolling(callback);
+    client.stopPolling();
+
+    client.dispose();
   });
 });

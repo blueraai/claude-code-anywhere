@@ -41,7 +41,7 @@ program
  */
 program
   .command('server')
-  .description('Start the email bridge server')
+  .description('Start the notification bridge server')
   .option('-p, --port <port>', 'Port to listen on', '3847')
   .action(async (options: { port: string }) => {
     const port = parseInt(options.port, 10);
@@ -92,7 +92,7 @@ program
  */
 program
   .command('status')
-  .description('Check email bridge server status')
+  .description('Check notification bridge server status')
   .option('-u, --url <url>', 'Bridge server URL', 'http://localhost:3847')
   .action(async (options: { url: string }) => {
     try {
@@ -124,11 +124,11 @@ program
  */
 program
   .command('enable')
-  .description('Enable email notifications globally')
+  .description('Enable notifications globally')
   .action(() => {
     try {
       enableGlobal();
-      console.log('Email notifications enabled globally');
+      console.log('Notifications enabled globally');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       console.error(`Error: ${message}`);
@@ -141,11 +141,11 @@ program
  */
 program
   .command('disable')
-  .description('Disable email notifications globally')
+  .description('Disable notifications globally')
   .action(() => {
     try {
       disableGlobal();
-      console.log('Email notifications disabled globally');
+      console.log('Notifications disabled globally');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       console.error(`Error: ${message}`);

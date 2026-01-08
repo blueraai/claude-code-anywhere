@@ -25,6 +25,12 @@ import type { AxiosInstance } from 'axios';
 const log = createLogger('telegram');
 
 /**
+ * Maximum number of sent message IDs to track for reply matching.
+ * Prevents unbounded memory growth in long-running sessions.
+ */
+const MAX_SENT_MESSAGE_IDS = 10000;
+
+/**
  * Telegram API response wrapper
  */
 interface TelegramAPIResponse<T> {
@@ -94,7 +100,7 @@ function formatTelegramMessage(sessionId: string, event: HookEvent, message: str
   return `${emoji} *Claude Code* \\[CC\\-${escapedSessionId}\\]\n\n*${header}*\n\n${escapeMarkdown(message)}\n\n_Reply to this message with your response\\._`;
 }
 
-function getEventEmoji(event: HookEvent): string {
+export function getEventEmoji(event: HookEvent): string {
   switch (event) {
     case 'Notification':
       return '\u{1F4E2}'; // 📢
@@ -104,10 +110,12 @@ function getEventEmoji(event: HookEvent): string {
       return '\u{26A0}'; // ⚠️
     case 'UserPromptSubmit':
       return '\u{1F916}'; // 🤖
+    default:
+      throw new Error(`Unexpected HookEvent: ${String(event)}`);
   }
 }
 
-function getEventHeader(event: HookEvent): string {
+export function getEventHeader(event: HookEvent): string {
   switch (event) {
     case 'Notification':
       return 'Notification';
@@ -117,6 +125,8 @@ function getEventHeader(event: HookEvent): string {
       return 'Approve tool use?';
     case 'UserPromptSubmit':
       return 'Claude needs input';
+    default:
+      throw new Error(`Unexpected HookEvent: ${String(event)}`);
   }
 }
 
@@ -246,6 +256,18 @@ export class TelegramClient implements Channel {
       // Track this message for reply matching
       this.sentMessageIds.set(messageId, notification.sessionId);
       this.lastSentSessionId = notification.sessionId;
+
+      // Prune oldest entries if map exceeds maximum size
+      if (this.sentMessageIds.size > MAX_SENT_MESSAGE_IDS) {
+        const entriesToRemove = this.sentMessageIds.size - MAX_SENT_MESSAGE_IDS;
+        const keys = this.sentMessageIds.keys();
+        for (let i = 0; i < entriesToRemove; i++) {
+          const key = keys.next().value;
+          if (key !== undefined) {
+            this.sentMessageIds.delete(key);
+          }
+        }
+      }
 
       this.lastActivity = Date.now();
       this.lastError = null;
@@ -388,9 +410,11 @@ export class TelegramClient implements Channel {
 
       this.lastError = null;
     } catch (error) {
+      // Fail fast: stop polling and record the error
       const errMsg = error instanceof Error ? error.message : 'Unknown error';
-      log.error(`Telegram poll error (will retry): ${errMsg}`);
+      log.error(`Telegram poll error: ${errMsg}`);
       this.lastError = errMsg;
+      this.stopPolling();
     } finally {
       this.isPolling = false;
     }

@@ -5,7 +5,9 @@
  * Uses polling (getUpdates) for receiving messages.
  */
 import type { Channel, ChannelNotification, ChannelStatus, ResponseCallback } from '../shared/channel.js';
-import type { Result, TelegramConfig } from '../shared/types.js';
+import type { Result, TelegramConfig, HookEvent } from '../shared/types.js';
+export declare function getEventEmoji(event: HookEvent): string;
+export declare function getEventHeader(event: HookEvent): string;
 /**
  * Telegram client for sending and receiving messages
  * Implements the Channel interface for multi-channel support

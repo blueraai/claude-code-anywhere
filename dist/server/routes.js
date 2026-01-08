@@ -286,9 +286,9 @@ export function handleRoot(_req, res) {
         name: 'Claude Code Anywhere',
         version: packageJson.version,
         endpoints: [
-            'POST /api/send - Send email for hook event',
+            'POST /api/send - Send notification for hook event',
             'POST /api/session - Register session waiting for response',
-            'GET /api/response/:sessionId - Poll for email response',
+            'GET /api/response/:sessionId - Poll for response',
             'POST /api/session/:id/enable - Enable session',
             'POST /api/session/:id/disable - Disable session',
             'GET /api/session/:id/enabled - Check if session enabled',

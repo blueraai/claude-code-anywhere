@@ -101,6 +101,11 @@ export declare class EmailClient implements Channel {
      */
     private decodeQuotedPrintable;
     /**
+     * Add a message ID to the processed set, pruning old entries if needed.
+     * When the set exceeds MAX_PROCESSED_MESSAGE_IDS, the oldest half is removed.
+     */
+    addProcessedMessageId(messageId: string): void;
+    /**
      * Stop polling for emails
      */
     stopPolling(): void;

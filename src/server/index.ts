@@ -207,9 +207,10 @@ export class BridgeServer {
       const responseMatch = path.match(/^\/api\/response\/([a-f0-9]+)$/i);
       if (responseMatch !== null && method === 'GET') {
         const sessionId = responseMatch[1];
-        if (sessionId !== undefined) {
-          handleGetResponse(req, res, sessionId);
+        if (sessionId === undefined) {
+          throw new Error('Unexpected: sessionId undefined after regex match');
         }
+        handleGetResponse(req, res, sessionId);
         return;
       }
 
@@ -217,9 +218,10 @@ export class BridgeServer {
       const enableMatch = path.match(/^\/api\/session\/([a-f0-9]+)\/enable$/i);
       if (enableMatch !== null && method === 'POST') {
         const sessionId = enableMatch[1];
-        if (sessionId !== undefined) {
-          handleEnableSession(req, res, sessionId);
+        if (sessionId === undefined) {
+          throw new Error('Unexpected: sessionId undefined after regex match');
         }
+        handleEnableSession(req, res, sessionId);
         return;
       }
 
@@ -227,9 +229,10 @@ export class BridgeServer {
       const disableMatch = path.match(/^\/api\/session\/([a-f0-9]+)\/disable$/i);
       if (disableMatch !== null && method === 'POST') {
         const sessionId = disableMatch[1];
-        if (sessionId !== undefined) {
-          handleDisableSession(req, res, sessionId);
+        if (sessionId === undefined) {
+          throw new Error('Unexpected: sessionId undefined after regex match');
         }
+        handleDisableSession(req, res, sessionId);
         return;
       }
 
@@ -237,9 +240,10 @@ export class BridgeServer {
       const enabledMatch = path.match(/^\/api\/session\/([a-f0-9]+)\/enabled$/i);
       if (enabledMatch !== null && method === 'GET') {
         const sessionId = enabledMatch[1];
-        if (sessionId !== undefined) {
-          handleCheckSessionEnabled(req, res, sessionId);
+        if (sessionId === undefined) {
+          throw new Error('Unexpected: sessionId undefined after regex match');
         }
+        handleCheckSessionEnabled(req, res, sessionId);
         return;
       }
 

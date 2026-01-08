@@ -38,12 +38,12 @@ declare class SessionManager {
      */
     getSessionCount(): number;
     /**
-     * Enable SMS for a session
+     * Enable notifications for a session
      * @throws Error if session does not exist
      */
     enableSession(sessionId: string): void;
     /**
-     * Disable SMS for a session
+     * Disable notifications for a session
      * @throws Error if session does not exist
      */
     disableSession(sessionId: string): void;
@@ -81,7 +81,7 @@ declare class SessionManager {
      */
     getPendingResponseCount(): number;
     /**
-     * Parse session ID from SMS body
+     * Parse session ID from message body
      * Format: [CC-abc123] message or just message
      */
     parseSessionFromSMS(body: string): ParsedSMS;

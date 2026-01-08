@@ -70,7 +70,7 @@ class SessionManager {
         return this.sessions.size;
     }
     /**
-     * Enable SMS for a session
+     * Enable notifications for a session
      * @throws Error if session does not exist
      */
     enableSession(sessionId) {
@@ -82,7 +82,7 @@ class SessionManager {
         session.lastActivity = Date.now();
     }
     /**
-     * Disable SMS for a session
+     * Disable notifications for a session
      * @throws Error if session does not exist
      */
     disableSession(sessionId) {
@@ -173,7 +173,7 @@ class SessionManager {
         return this.pendingResponses.size;
     }
     /**
-     * Parse session ID from SMS body
+     * Parse session ID from message body
      * Format: [CC-abc123] message or just message
      */
     parseSessionFromSMS(body) {
