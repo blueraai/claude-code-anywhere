@@ -152,4 +152,95 @@ describe('SessionManager', () => {
       expect(sessionManager.findSessionByMessageId('<msg3@example.com>')).toBe('session-3');
     });
   });
+
+  describe('consumeResponse', () => {
+    it('returns response and deletes it', () => {
+      sessionManager.registerSession('test-session', 'Notification', 'test prompt');
+      sessionManager.storeResponse('test-session', 'my response', '+1234567890');
+
+      const response = sessionManager.consumeResponse('test-session');
+
+      expect(response).not.toBeNull();
+      expect(response?.sessionId).toBe('test-session');
+      expect(response?.response).toBe('my response');
+      expect(response?.from).toBe('+1234567890');
+      expect(sessionManager.hasResponse('test-session')).toBe(false);
+    });
+
+    it('also removes the session', () => {
+      sessionManager.registerSession('test-session', 'Notification', 'test prompt');
+      sessionManager.storeResponse('test-session', 'my response', '+1234567890');
+
+      sessionManager.consumeResponse('test-session');
+
+      expect(sessionManager.hasSession('test-session')).toBe(false);
+    });
+
+    it('returns null for non-existent session', () => {
+      const response = sessionManager.consumeResponse('nonexistent');
+      expect(response).toBeNull();
+    });
+  });
+
+  describe('getActiveSessionIds', () => {
+    it('returns empty array when no sessions', () => {
+      const ids = sessionManager.getActiveSessionIds();
+      expect(ids).toEqual([]);
+    });
+
+    it('returns all session IDs', () => {
+      sessionManager.registerSession('session-1', 'Notification', 'prompt 1');
+      sessionManager.registerSession('session-2', 'Notification', 'prompt 2');
+      sessionManager.registerSession('session-3', 'Notification', 'prompt 3');
+
+      const ids = sessionManager.getActiveSessionIds();
+
+      expect(ids).toHaveLength(3);
+      expect(ids).toContain('session-1');
+      expect(ids).toContain('session-2');
+      expect(ids).toContain('session-3');
+    });
+  });
+
+  describe('getSessionCount and getPendingResponseCount', () => {
+    it('returns 0 when empty', () => {
+      expect(sessionManager.getSessionCount()).toBe(0);
+      expect(sessionManager.getPendingResponseCount()).toBe(0);
+    });
+
+    it('increments correctly', () => {
+      sessionManager.registerSession('session-1', 'Notification', 'prompt 1');
+      expect(sessionManager.getSessionCount()).toBe(1);
+      expect(sessionManager.getPendingResponseCount()).toBe(0);
+
+      sessionManager.registerSession('session-2', 'Notification', 'prompt 2');
+      expect(sessionManager.getSessionCount()).toBe(2);
+
+      sessionManager.storeResponse('session-1', 'response 1', '+1234567890');
+      expect(sessionManager.getPendingResponseCount()).toBe(1);
+
+      sessionManager.storeResponse('session-2', 'response 2', '+1234567890');
+      expect(sessionManager.getPendingResponseCount()).toBe(2);
+    });
+
+    it('decrements on consume', () => {
+      sessionManager.registerSession('session-1', 'Notification', 'prompt 1');
+      sessionManager.registerSession('session-2', 'Notification', 'prompt 2');
+      sessionManager.storeResponse('session-1', 'response 1', '+1234567890');
+      sessionManager.storeResponse('session-2', 'response 2', '+1234567890');
+
+      expect(sessionManager.getSessionCount()).toBe(2);
+      expect(sessionManager.getPendingResponseCount()).toBe(2);
+
+      sessionManager.consumeResponse('session-1');
+
+      expect(sessionManager.getSessionCount()).toBe(1);
+      expect(sessionManager.getPendingResponseCount()).toBe(1);
+
+      sessionManager.consumeResponse('session-2');
+
+      expect(sessionManager.getSessionCount()).toBe(0);
+      expect(sessionManager.getPendingResponseCount()).toBe(0);
+    });
+  });
 });

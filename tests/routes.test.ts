@@ -1,6 +1,31 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { EventEmitter } from 'events';
 import type { IncomingMessage, ServerResponse } from 'http';
+import type { RouteContext } from '../src/server/routes.js';
+
+// Mock the modules before importing the routes
+vi.mock('../src/server/sessions.js', () => ({
+  sessionManager: {
+    hasSession: vi.fn(),
+    isSessionEnabled: vi.fn(),
+    enableSession: vi.fn(),
+    disableSession: vi.fn(),
+    registerSession: vi.fn(),
+    storeMessageId: vi.fn(),
+    consumeResponse: vi.fn(),
+    getSessionCount: vi.fn(),
+    getPendingResponseCount: vi.fn(),
+  },
+}));
+
+vi.mock('../src/server/state.js', () => ({
+  stateManager: {
+    isHookEnabled: vi.fn(),
+    isEnabled: vi.fn(),
+    enable: vi.fn(),
+    disable: vi.fn(),
+  },
+}));
 
 // Create a mock request that emits events
 function createMockRequest(
@@ -157,8 +182,13 @@ describe('readBody', () => {
 });
 
 describe('handleGetResponse', () => {
-  beforeEach(() => {
+  let sessionManager: { consumeResponse: Mock };
+
+  beforeEach(async () => {
     vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -168,6 +198,8 @@ describe('handleGetResponse', () => {
   it('returns null response when no response available', async () => {
     const { handleGetResponse } = await import('../src/server/routes.js');
 
+    sessionManager.consumeResponse.mockReturnValue(null);
+
     const req = createMockRequest();
     const res = createMockResponse();
 
@@ -176,5 +208,821 @@ describe('handleGetResponse', () => {
     expect(res._statusCode).toBe(200);
     const body = JSON.parse(res._body) as { response: unknown };
     expect(body.response).toBeNull();
+  });
+
+  it('returns response when available', async () => {
+    const { handleGetResponse } = await import('../src/server/routes.js');
+
+    const mockResponse = {
+      sessionId: 'test-session',
+      response: 'test response',
+      from: 'user@example.com',
+      timestamp: Date.now(),
+    };
+    sessionManager.consumeResponse.mockReturnValue(mockResponse);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleGetResponse(req, res, 'test-session');
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as typeof mockResponse;
+    expect(body.sessionId).toBe('test-session');
+    expect(body.response).toBe('test response');
+    expect(body.from).toBe('user@example.com');
+  });
+});
+
+// Helper to create mock context with email client
+function createMockContext(): RouteContext & {
+  emailClient: { sendHookMessage: Mock };
+} {
+  return {
+    emailClient: {
+      sendHookMessage: vi.fn(),
+    },
+    startTime: Date.now() - 60000, // 1 minute ago
+  };
+}
+
+// Helper to emit request body and end
+function emitRequestBody(req: EventEmitter, body: string): void {
+  setImmediate(() => {
+    req.emit('data', Buffer.from(body));
+    req.emit('end');
+  });
+}
+
+describe('handleSendEmail', () => {
+  let sessionManager: {
+    hasSession: Mock;
+    isSessionEnabled: Mock;
+    storeMessageId: Mock;
+  };
+  let stateManager: { isHookEnabled: Mock };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    const stateMod = await import('../src/server/state.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    stateManager = stateMod.stateManager as typeof stateManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 400 for invalid JSON body', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, 'not valid json {{{');
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toContain('Invalid JSON body');
+  });
+
+  it('returns 400 for missing sessionId', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ event: 'Notification', message: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid sessionId');
+  });
+
+  it('returns 400 for missing event', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', message: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid event');
+  });
+
+  it('returns 400 for invalid event', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'InvalidEvent', message: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid event');
+  });
+
+  it('returns 400 for missing message', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid message');
+  });
+
+  it('returns 200 with sent:false when hook is disabled', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    stateManager.isHookEnabled.mockReturnValue(false);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { sent: boolean; reason: string };
+    expect(body.sent).toBe(false);
+    expect(body.reason).toBe('Hook disabled');
+  });
+
+  it('returns 200 with sent:false when session not found', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    stateManager.isHookEnabled.mockReturnValue(true);
+    sessionManager.hasSession.mockReturnValue(false);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { sent: boolean; reason: string };
+    expect(body.sent).toBe(false);
+    expect(body.reason).toBe('Session not found');
+  });
+
+  it('returns 200 with sent:true on successful send', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    stateManager.isHookEnabled.mockReturnValue(true);
+    sessionManager.hasSession.mockReturnValue(true);
+    sessionManager.isSessionEnabled.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+    ctx.emailClient.sendHookMessage.mockResolvedValue({ success: true, data: 'msg-id-123' });
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test message' }));
+    await promise;
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { sent: boolean; messageId: string };
+    expect(body.sent).toBe(true);
+    expect(body.messageId).toBe('msg-id-123');
+    expect(sessionManager.storeMessageId).toHaveBeenCalledWith('test-123', 'msg-id-123');
+  });
+
+  it('returns 500 when email send fails', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    stateManager.isHookEnabled.mockReturnValue(true);
+    sessionManager.hasSession.mockReturnValue(true);
+    sessionManager.isSessionEnabled.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+    ctx.emailClient.sendHookMessage.mockResolvedValue({ success: false, error: 'SMTP connection failed' });
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test message' }));
+    await promise;
+
+    expect(res._statusCode).toBe(500);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('SMTP connection failed');
+  });
+});
+
+describe('handleRegisterSession', () => {
+  let sessionManager: {
+    registerSession: Mock;
+    storeMessageId: Mock;
+  };
+  let stateManager: { isHookEnabled: Mock };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    const stateMod = await import('../src/server/state.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    stateManager = stateMod.stateManager as typeof stateManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 400 for invalid JSON body', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, 'not valid json');
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toContain('Invalid JSON body');
+  });
+
+  it('returns 400 for missing sessionId', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ event: 'Notification', prompt: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid sessionId');
+  });
+
+  it('returns 400 for missing event', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', prompt: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid event');
+  });
+
+  it('returns 400 for missing prompt', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid prompt');
+  });
+
+  it('returns 200 with registered:false when hook is disabled', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    stateManager.isHookEnabled.mockReturnValue(false);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' }));
+    await promise;
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { registered: boolean; reason: string };
+    expect(body.registered).toBe(false);
+    expect(body.reason).toBe('Hook disabled');
+  });
+
+  it('returns 200 with registered:true on successful registration', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    stateManager.isHookEnabled.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+    ctx.emailClient.sendHookMessage.mockResolvedValue({ success: true, data: 'msg-id-456' });
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' }));
+    await promise;
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { registered: boolean; messageId: string };
+    expect(body.registered).toBe(true);
+    expect(body.messageId).toBe('msg-id-456');
+    expect(sessionManager.registerSession).toHaveBeenCalledWith('test-123', 'Notification', 'test prompt');
+    expect(sessionManager.storeMessageId).toHaveBeenCalledWith('test-123', 'msg-id-456');
+  });
+
+  it('returns 500 when email send fails', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    stateManager.isHookEnabled.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+    ctx.emailClient.sendHookMessage.mockResolvedValue({ success: false, error: 'Email server error' });
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' }));
+    await promise;
+
+    expect(res._statusCode).toBe(500);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Email server error');
+  });
+});
+
+describe('handleEnableSession', () => {
+  let sessionManager: {
+    hasSession: Mock;
+    enableSession: Mock;
+  };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 404 when session not found', async () => {
+    const { handleEnableSession } = await import('../src/server/routes.js');
+
+    sessionManager.hasSession.mockReturnValue(false);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleEnableSession(req, res, 'nonexistent-session');
+
+    expect(res._statusCode).toBe(404);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Session nonexistent-session not found');
+  });
+
+  it('returns 200 with success:true when session exists', async () => {
+    const { handleEnableSession } = await import('../src/server/routes.js');
+
+    sessionManager.hasSession.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleEnableSession(req, res, 'existing-session');
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { success: boolean };
+    expect(body.success).toBe(true);
+    expect(sessionManager.enableSession).toHaveBeenCalledWith('existing-session');
+  });
+});
+
+describe('handleDisableSession', () => {
+  let sessionManager: {
+    hasSession: Mock;
+    disableSession: Mock;
+  };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 404 when session not found', async () => {
+    const { handleDisableSession } = await import('../src/server/routes.js');
+
+    sessionManager.hasSession.mockReturnValue(false);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleDisableSession(req, res, 'nonexistent-session');
+
+    expect(res._statusCode).toBe(404);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Session nonexistent-session not found');
+  });
+
+  it('returns 200 with success:true when session exists', async () => {
+    const { handleDisableSession } = await import('../src/server/routes.js');
+
+    sessionManager.hasSession.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleDisableSession(req, res, 'existing-session');
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { success: boolean };
+    expect(body.success).toBe(true);
+    expect(sessionManager.disableSession).toHaveBeenCalledWith('existing-session');
+  });
+});
+
+describe('handleCheckSessionEnabled', () => {
+  let sessionManager: {
+    hasSession: Mock;
+    isSessionEnabled: Mock;
+  };
+  let stateManager: { isEnabled: Mock };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    const stateMod = await import('../src/server/state.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    stateManager = stateMod.stateManager as typeof stateManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 404 when session not found', async () => {
+    const { handleCheckSessionEnabled } = await import('../src/server/routes.js');
+
+    sessionManager.hasSession.mockReturnValue(false);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleCheckSessionEnabled(req, res, 'nonexistent-session');
+
+    expect(res._statusCode).toBe(404);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Session not found');
+  });
+
+  it('returns 200 with enabled status when session exists', async () => {
+    const { handleCheckSessionEnabled } = await import('../src/server/routes.js');
+
+    sessionManager.hasSession.mockReturnValue(true);
+    sessionManager.isSessionEnabled.mockReturnValue(true);
+    stateManager.isEnabled.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleCheckSessionEnabled(req, res, 'existing-session');
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { enabled: boolean };
+    expect(body.enabled).toBe(true);
+  });
+
+  it('returns enabled:false when session is enabled but global is disabled', async () => {
+    const { handleCheckSessionEnabled } = await import('../src/server/routes.js');
+
+    sessionManager.hasSession.mockReturnValue(true);
+    sessionManager.isSessionEnabled.mockReturnValue(true);
+    stateManager.isEnabled.mockReturnValue(false);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleCheckSessionEnabled(req, res, 'existing-session');
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { enabled: boolean };
+    expect(body.enabled).toBe(false);
+  });
+});
+
+describe('handleStatus', () => {
+  let sessionManager: {
+    getSessionCount: Mock;
+    getPendingResponseCount: Mock;
+  };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns correct status JSON structure', async () => {
+    const { handleStatus } = await import('../src/server/routes.js');
+
+    sessionManager.getSessionCount.mockReturnValue(5);
+    sessionManager.getPendingResponseCount.mockReturnValue(2);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    handleStatus(req, res, ctx);
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as {
+      status: string;
+      activeSessions: number;
+      pendingResponses: number;
+      uptime: number;
+    };
+    expect(body.status).toBe('running');
+    expect(body.activeSessions).toBe(5);
+    expect(body.pendingResponses).toBe(2);
+    expect(body.uptime).toBeGreaterThanOrEqual(60);
+  });
+});
+
+describe('handleRoot', () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns correct server info JSON structure', async () => {
+    const { handleRoot } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleRoot(req, res);
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as {
+      name: string;
+      version: string;
+      backend: string;
+      endpoints: string[];
+    };
+    expect(body.name).toBe('Claude Code Email Bridge');
+    expect(body.version).toBe('0.1.0');
+    expect(body.backend).toBe('Gmail SMTP/IMAP');
+    expect(Array.isArray(body.endpoints)).toBe(true);
+    expect(body.endpoints.length).toBeGreaterThan(0);
+  });
+});
+
+describe('handleEnableGlobal', () => {
+  let stateManager: { enable: Mock };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const stateMod = await import('../src/server/state.js');
+    stateManager = stateMod.stateManager as typeof stateManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 200 with success:true', async () => {
+    const { handleEnableGlobal } = await import('../src/server/routes.js');
+
+    stateManager.enable.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleEnableGlobal(req, res);
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { success: boolean };
+    expect(body.success).toBe(true);
+    expect(stateManager.enable).toHaveBeenCalled();
+  });
+});
+
+describe('handleDisableGlobal', () => {
+  let stateManager: { disable: Mock };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const stateMod = await import('../src/server/state.js');
+    stateManager = stateMod.stateManager as typeof stateManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 200 with success:true', async () => {
+    const { handleDisableGlobal } = await import('../src/server/routes.js');
+
+    stateManager.disable.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+
+    handleDisableGlobal(req, res);
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { success: boolean };
+    expect(body.success).toBe(true);
+    expect(stateManager.disable).toHaveBeenCalled();
+  });
+});
+
+describe('handleSendEmail edge cases', () => {
+  let sessionManager: {
+    hasSession: Mock;
+    isSessionEnabled: Mock;
+    storeMessageId: Mock;
+  };
+  let stateManager: { isHookEnabled: Mock };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    const stateMod = await import('../src/server/state.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    stateManager = stateMod.stateManager as typeof stateManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 400 for non-object JSON body', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify('just a string'));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Invalid JSON body: expected object');
+  });
+
+  it('returns 400 for empty sessionId', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: '', event: 'Notification', message: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid sessionId');
+  });
+
+  it('returns 400 for empty message', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: '' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid message');
+  });
+
+  it('returns 200 with sent:false when session is disabled', async () => {
+    const { handleSendEmail } = await import('../src/server/routes.js');
+
+    stateManager.isHookEnabled.mockReturnValue(true);
+    sessionManager.hasSession.mockReturnValue(true);
+    sessionManager.isSessionEnabled.mockReturnValue(false);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleSendEmail(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' }));
+    await promise;
+
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { sent: boolean; reason: string };
+    expect(body.sent).toBe(false);
+    expect(body.reason).toBe('Session disabled');
+  });
+});
+
+describe('handleRegisterSession edge cases', () => {
+  let stateManager: { isHookEnabled: Mock };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const stateMod = await import('../src/server/state.js');
+    stateManager = stateMod.stateManager as typeof stateManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns 400 for non-object JSON body', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, JSON.stringify(null));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Invalid JSON body: expected object');
+  });
+
+  it('returns 400 for empty prompt', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: '' }));
+    await promise;
+
+    expect(res._statusCode).toBe(400);
+    const body = JSON.parse(res._body) as { error: string };
+    expect(body.error).toBe('Missing or invalid prompt');
   });
 });
