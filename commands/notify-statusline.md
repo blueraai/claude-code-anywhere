@@ -2,8 +2,9 @@
 description: Add notify status indicator to Claude Code statusline
 argument-hint: on | off
 allowed-tools:
-  - Read
-  - Edit
+  - Read(~/.claude/statusline.sh)
+  - Edit(~/.claude/statusline.sh)
+  - Bash(head ~/.claude/statusline.sh *)
 ---
 
 # /notify-statusline

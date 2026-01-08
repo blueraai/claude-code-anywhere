@@ -595,7 +595,7 @@ claude-code-anywhere/
 Develop this plugin while using it with Claude Code:
 
 ```bash
-claude --plugin-dir /path/to/claude-code-anywhere
+claude --plugin-dir .  # assumes running from repo root
 ```
 
 Changes take effect on Claude Code restart (no reinstall needed).
