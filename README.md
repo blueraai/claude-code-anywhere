@@ -163,7 +163,9 @@ To enable global mode:
 
 ### 3. Configure Channels
 
-Copy `.env.example` to `.env` (in the plugin directory) and configure:
+Copy `.env.example` to `.env` and configure:
+- **Session-only mode**: In the plugin directory (where `/plugin add` installed it)
+- **Global mode**: `~/.claude-notify/plugins/claude-code-anywhere/.env`
 
 **Email:**
 ```env
@@ -389,6 +391,8 @@ After installation, restart your shell. All future `claude` sessions will automa
 
 **macOS Note:** You'll see a system notification: *"Software from 'Jarred Sumner' can run in the background."* This is expected — Jarred Sumner is the creator of [Bun](https://bun.sh), the JavaScript runtime we use. Allow it in System Settings → Login Items to keep the daemon running.
 
+**Windows:** Global installation is not yet supported. Use session-only mode with `/notify on`.
+
 </details>
 
 ---
@@ -468,14 +472,14 @@ Diagnose installation and configuration issues. Especially useful after global i
 
 ## PATH Check
 ✅ Shim is first in PATH: ~/.claude-notify/bin/claude
-   Real claude: /opt/homebrew/bin/claude
+   Real claude: ~/.local/bin/claude
 
 ## Service Status
 ✅ Daemon running (launchd: com.claude.notify)
    API: http://localhost:3847
 
 ## Plugin Installation
-✅ Plugin installed: v0.3.4
+✅ Plugin installed: vX.Y.Z
    Path: ~/.claude-notify/plugins/claude-code-anywhere
 
 ## Channels
@@ -526,6 +530,15 @@ Settings persist in `~/.claude/claude-code-anywhere/state.json`:
   }
 }
 ```
+
+### Suppressing the Mode Selection Prompt
+
+On first session, a one-time message explains SESSION-ONLY vs GLOBAL modes. To suppress this:
+
+| Method | How | Persists |
+|--------|-----|----------|
+| Environment variable | `export CLAUDE_NOTIFY_AUTO=0` | Per-shell |
+| Sentinel file | `touch ~/.config/claude-code-anywhere/disable-autoinstall` | Permanent |
 
 ---
 
@@ -597,6 +610,32 @@ Settings persist in `~/.claude/claude-code-anywhere/state.json`:
 
 </details>
 
+<details>
+<summary><b>Global Installation Issues</b></summary>
+
+1. **Daemon not starting:**
+   - macOS: `launchctl list | grep claude`
+   - Check logs: `cat ~/.claude-notify/logs/daemon.log`
+   - Check errors: `cat ~/.claude-notify/logs/daemon.err`
+
+2. **Shim not first in PATH:**
+   - Run `which claude` — should show `~/.claude-notify/bin/claude`
+   - Restart shell: `exec $SHELL`
+   - Verify PATH: `echo $PATH | tr ':' '\n' | head -5`
+
+3. **Service won't load (macOS):**
+   ```bash
+   launchctl load ~/Library/LaunchAgents/com.claude.notify.plist
+   launchctl print gui/$(id -u)/com.claude.notify
+   ```
+
+4. **Run diagnostics:**
+   ```bash
+   /notify-doctor
+   ```
+
+</details>
+
 ---
 
 ## Comparison with Claude Code Remote
@@ -608,7 +647,7 @@ Settings persist in `~/.claude/claude-code-anywhere/state.json`:
 | **Channels** | Email, Telegram | Email, Telegram, LINE, Desktop |
 | **Integration** | Native hooks + HTTP | PTY relay + scripts |
 | **Setup** | `.env` file | Interactive wizard |
-| **Codebase** | TypeScript, 89% tested | JavaScript |
+| **Codebase** | TypeScript, 85% tested | JavaScript |
 | **Telegram mode** | Polling (simpler) | Webhook |
 | **Public URL needed** | No | Yes (for webhooks) |
 | **Group support** | 1:1 only | Groups supported |
@@ -669,11 +708,16 @@ claude-code-anywhere/
 ├── plugin.json               # Plugin manifest
 ├── commands/
 │   ├── notify.md             # /notify command
+│   ├── notify-install.md     # /notify install command
+│   ├── notify-doctor.md      # /notify-doctor diagnostics
 │   ├── notify-test.md        # /notify-test command
 │   └── notify-statusline.md  # /notify-statusline command
 ├── hooks/
 │   ├── hooks.json            # Hook definitions
-│   └── scripts/              # Hook scripts
+│   └── check-install.sh      # SessionStart guidance hook
+├── scripts/
+│   ├── install.sh            # Global installation script
+│   └── uninstall.sh          # Global uninstallation script
 ├── src/
 │   ├── server/
 │   │   ├── index.ts          # Server entry
