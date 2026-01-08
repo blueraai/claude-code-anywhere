@@ -1,6 +1,6 @@
 {
   "name": "claude-code-anywhere",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Email notifications and bidirectional communication for Claude Code",
   "author": {
     "name": "Bluera",

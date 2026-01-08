@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.4](https://github.com/blueraai/claude-code-anywhere/compare/v0.2.3...v0.2.4) (2026-01-08)
+
+
+### Features
+
+* **commands:** add frontmatter with argument-hint and description ([f0af904](https://github.com/blueraai/claude-code-anywhere/commit/f0af904e3925fbe4a0f4055593045bba8c0666a8))
+
 ## [0.2.3](https://github.com/blueraai/claude-code-anywhere/compare/v0.2.2...v0.2.3) (2026-01-08)
 
 
