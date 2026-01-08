@@ -234,13 +234,13 @@ describe('handleGetResponse', () => {
   });
 });
 
-// Helper to create mock context with email client
+// Helper to create mock context with channel manager
 function createMockContext(): RouteContext & {
-  emailClient: { sendHookMessage: Mock };
+  channelManager: { sendToAll: Mock };
 } {
   return {
-    emailClient: {
-      sendHookMessage: vi.fn(),
+    channelManager: {
+      sendToAll: vi.fn(),
     },
     startTime: Date.now() - 60000, // 1 minute ago
   };
@@ -404,20 +404,24 @@ describe('handleSendEmail', () => {
     const req = createMockRequest();
     const res = createMockResponse();
     const ctx = createMockContext();
-    ctx.emailClient.sendHookMessage.mockResolvedValue({ success: true, data: 'msg-id-123' });
+    ctx.channelManager.sendToAll.mockResolvedValue({
+      successCount: 1,
+      failureCount: 0,
+      results: new Map([['email', { success: true, data: 'msg-id-123' }]]),
+    });
 
     const promise = handleSendEmail(req, res, ctx);
     emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test message' }));
     await promise;
 
     expect(res._statusCode).toBe(200);
-    const body = JSON.parse(res._body) as { sent: boolean; messageId: string };
+    const body = JSON.parse(res._body) as { sent: boolean; channels: number };
     expect(body.sent).toBe(true);
-    expect(body.messageId).toBe('msg-id-123');
+    expect(body.channels).toBe(1);
     expect(sessionManager.storeMessageId).toHaveBeenCalledWith('test-123', 'msg-id-123');
   });
 
-  it('returns 500 when email send fails', async () => {
+  it('returns 500 when all channels fail', async () => {
     const { handleSendEmail } = await import('../src/server/routes.js');
 
     stateManager.isHookEnabled.mockReturnValue(true);
@@ -427,7 +431,11 @@ describe('handleSendEmail', () => {
     const req = createMockRequest();
     const res = createMockResponse();
     const ctx = createMockContext();
-    ctx.emailClient.sendHookMessage.mockResolvedValue({ success: false, error: 'SMTP connection failed' });
+    ctx.channelManager.sendToAll.mockResolvedValue({
+      successCount: 0,
+      failureCount: 1,
+      results: new Map([['email', { success: false, error: 'SMTP connection failed' }]]),
+    });
 
     const promise = handleSendEmail(req, res, ctx);
     emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test message' }));
@@ -435,7 +443,7 @@ describe('handleSendEmail', () => {
 
     expect(res._statusCode).toBe(500);
     const body = JSON.parse(res._body) as { error: string };
-    expect(body.error).toBe('SMTP connection failed');
+    expect(body.error).toBe('All channels failed to send');
   });
 });
 
@@ -550,21 +558,25 @@ describe('handleRegisterSession', () => {
     const req = createMockRequest();
     const res = createMockResponse();
     const ctx = createMockContext();
-    ctx.emailClient.sendHookMessage.mockResolvedValue({ success: true, data: 'msg-id-456' });
+    ctx.channelManager.sendToAll.mockResolvedValue({
+      successCount: 1,
+      failureCount: 0,
+      results: new Map([['email', { success: true, data: 'msg-id-456' }]]),
+    });
 
     const promise = handleRegisterSession(req, res, ctx);
     emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' }));
     await promise;
 
     expect(res._statusCode).toBe(200);
-    const body = JSON.parse(res._body) as { registered: boolean; messageId: string };
+    const body = JSON.parse(res._body) as { registered: boolean; channels: number };
     expect(body.registered).toBe(true);
-    expect(body.messageId).toBe('msg-id-456');
+    expect(body.channels).toBe(1);
     expect(sessionManager.registerSession).toHaveBeenCalledWith('test-123', 'Notification', 'test prompt');
     expect(sessionManager.storeMessageId).toHaveBeenCalledWith('test-123', 'msg-id-456');
   });
 
-  it('returns 500 when email send fails', async () => {
+  it('returns 500 when all channels fail', async () => {
     const { handleRegisterSession } = await import('../src/server/routes.js');
 
     stateManager.isHookEnabled.mockReturnValue(true);
@@ -572,7 +584,11 @@ describe('handleRegisterSession', () => {
     const req = createMockRequest();
     const res = createMockResponse();
     const ctx = createMockContext();
-    ctx.emailClient.sendHookMessage.mockResolvedValue({ success: false, error: 'Email server error' });
+    ctx.channelManager.sendToAll.mockResolvedValue({
+      successCount: 0,
+      failureCount: 1,
+      results: new Map([['email', { success: false, error: 'Email server error' }]]),
+    });
 
     const promise = handleRegisterSession(req, res, ctx);
     emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' }));
@@ -580,7 +596,7 @@ describe('handleRegisterSession', () => {
 
     expect(res._statusCode).toBe(500);
     const body = JSON.parse(res._body) as { error: string };
-    expect(body.error).toBe('Email server error');
+    expect(body.error).toBe('All channels failed to send');
   });
 });
 

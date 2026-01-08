@@ -23,7 +23,7 @@ if [ -z "$HAS_SRC_CHANGES" ] && [ -z "$HAS_TEST_CHANGES" ]; then
   exit 0
 fi
 
-# Run coverage tests with quiet output
-echo "🧪 Running coverage tests..."
-bun run test:coverage:quiet || { echo "❌ Coverage tests failed"; exit 1; }
-echo "✅ Coverage tests passed"
+# Run ALL tests (not just changed) to catch interface breakages
+echo "🧪 Running all tests..."
+bun run test:all || { echo "❌ Tests failed - push blocked"; exit 1; }
+echo "✅ All tests passed"
