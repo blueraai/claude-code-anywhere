@@ -1,6 +1,6 @@
-# Claude SMS
+# Claude Code Anywhere
 
-[![CI](https://github.com/chris-bluera/claude-sms/actions/workflows/ci.yml/badge.svg)](https://github.com/chris-bluera/claude-sms/actions/workflows/ci.yml)
+[![CI](https://github.com/chris-bluera/claude-code-anywhere/actions/workflows/ci.yml/badge.svg)](https://github.com/chris-bluera/claude-code-anywhere/actions/workflows/ci.yml)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 
@@ -11,7 +11,7 @@
 <details>
 <summary>Click to expand</summary>
 
-- [Why Claude SMS?](#-why-claude-sms)
+- [Why Claude Code Anywhere?](#-why-claude-code-anywhere)
 - [Features](#-features)
 - [Requirements](#-requirements)
 - [Quick Start](#-quick-start)
@@ -32,11 +32,11 @@
 
 ---
 
-## Why Claude SMS?
+## Why Claude Code Anywhere?
 
 When Claude Code needs your input--a question, approval, or notification--you shouldn't have to be tethered to your terminal.
 
-| Scenario | Without Claude SMS | With Claude SMS |
+| Scenario | Without Claude Code Anywhere | With Claude Code Anywhere |
 |----------|-------------------|-----------------|
 | Task completes | Sit and wait, or miss it | Get email: "Task completed!" |
 | Claude asks a question | Session blocks until you notice | Get email, reply from anywhere |
@@ -82,7 +82,7 @@ For Gmail:
 ### 2. Install the Plugin
 
 ```bash
-claude /plugin add github.com/chris-bluera/claude-sms
+claude /plugin add github.com/chris-bluera/claude-code-anywhere
 ```
 
 ### 3. Set Environment Variables
@@ -99,13 +99,13 @@ Add these to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) for persistence.
 ### 4. Start the Bridge Server
 
 ```bash
-npx claude-sms server
+npx claude-code-anywhere server
 ```
 
 ### 5. Test the Setup
 
 ```bash
-npx claude-sms test
+npx claude-code-anywhere test
 ```
 
 Or in Claude Code:
@@ -130,12 +130,12 @@ Or in Claude Code:
 
 | Command | Description |
 |---------|-------------|
-| `npx claude-sms server` | Start bridge server |
-| `npx claude-sms status` | Check server status |
-| `npx claude-sms enable` | Enable notifications globally |
-| `npx claude-sms disable` | Disable notifications globally |
-| `npx claude-sms test` | Send test email |
-| `npx claude-sms config` | Show configuration |
+| `npx claude-code-anywhere server` | Start bridge server |
+| `npx claude-code-anywhere status` | Check server status |
+| `npx claude-code-anywhere enable` | Enable notifications globally |
+| `npx claude-code-anywhere disable` | Disable notifications globally |
+| `npx claude-code-anywhere test` | Send test email |
+| `npx claude-code-anywhere config` | Show configuration |
 
 ---
 
@@ -153,9 +153,9 @@ Or in Claude Code:
 ### From Command Line
 
 ```bash
-npx claude-sms enable   # Enable globally
-npx claude-sms disable  # Disable globally
-npx claude-sms status   # Check server and settings
+npx claude-code-anywhere enable   # Enable globally
+npx claude-code-anywhere disable  # Disable globally
+npx claude-code-anywhere status   # Check server and settings
 ```
 
 ---
@@ -251,7 +251,7 @@ export IMAP_PORT=993
 
 ### State File
 
-Settings are stored in `~/.claude/claude-sms/state.json`:
+Settings are stored in `~/.claude/claude-code-anywhere/state.json`:
 
 ```json
 {
@@ -319,7 +319,7 @@ Logs include full email details (from, to, subject, body, messageId) for debuggi
 
 1. Check if port 3847 is in use: `lsof -i :3847`
 2. Verify all required environment variables are set
-3. Try a different port: `npx claude-sms server -p 3848`
+3. Try a different port: `npx claude-code-anywhere server -p 3848`
 </details>
 
 <details>
@@ -338,7 +338,7 @@ Gmail no longer supports "less secure apps." You must:
 The plugin follows the Claude Code plugin convention:
 
 ```
-claude-sms/
+claude-code-anywhere/
 ├── .claude-plugin/
 │   └── plugin.json          # Plugin manifest
 ├── commands/
@@ -359,8 +359,8 @@ claude-sms/
 ### Setup
 
 ```bash
-git clone https://github.com/chris-bluera/claude-sms.git
-cd claude-sms
+git clone https://github.com/chris-bluera/claude-code-anywhere.git
+cd claude-code-anywhere
 bun install
 bun run build
 ```
@@ -398,7 +398,7 @@ You can develop this plugin while using it with Claude Code:
 
 ```bash
 # Load plugin directly from your dev directory
-claude --plugin-dir /path/to/claude-sms
+claude --plugin-dir /path/to/claude-code-anywhere
 ```
 
 Changes take effect on Claude Code restart (no reinstall needed).
@@ -440,5 +440,5 @@ MIT -- See [LICENSE](./LICENSE) for details.
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/chris-bluera/claude-sms/issues)
+- **Issues**: [GitHub Issues](https://github.com/chris-bluera/claude-code-anywhere/issues)
 - **Changelog**: [CHANGELOG.md](./CHANGELOG.md)

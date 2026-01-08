@@ -1,5 +1,5 @@
 /**
- * Claude SMS - Email notifications and bidirectional communication for Claude Code
+ * Claude Code Anywhere - Email notifications and bidirectional communication for Claude Code
  *
  * Uses Gmail SMTP/IMAP for sending/receiving messages.
  */

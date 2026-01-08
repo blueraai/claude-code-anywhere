@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Claude SMS CLI - Command line interface for the email bridge
+ * Claude Code Anywhere CLI - Command line interface for the email bridge
  *
  * Uses Gmail SMTP/IMAP for sending/receiving messages.
  */
@@ -28,7 +28,7 @@ function isStatusResponse(value) {
     return true;
 }
 program
-    .name('claude-sms')
+    .name('claude-code-anywhere')
     .description('Email notifications and bidirectional communication for Claude Code')
     .version('0.1.0');
 /**

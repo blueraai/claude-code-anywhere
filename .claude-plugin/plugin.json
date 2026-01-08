@@ -1,5 +1,5 @@
 {
-  "name": "claude-notify",
+  "name": "claude-code-anywhere",
   "version": "0.2.0",
   "description": "Email notifications and bidirectional communication for Claude Code",
   "author": {
@@ -8,14 +8,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/chris-bluera/claude-sms"
+    "url": "https://github.com/chris-bluera/claude-code-anywhere"
   },
   "license": "MIT",
   "keywords": [
     "notifications",
     "email",
     "hooks",
-    "claude-code"
+    "claude-code",
+    "remote",
+    "mobile"
   ],
   "commands": "./commands",
   "hooks": "./hooks/hooks.json"

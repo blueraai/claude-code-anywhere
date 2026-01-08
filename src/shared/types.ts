@@ -1,5 +1,5 @@
 /**
- * Shared TypeScript types for claude-sms
+ * Shared TypeScript types for claude-code-anywhere
  */
 
 /**

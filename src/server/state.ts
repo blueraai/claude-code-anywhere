@@ -1,5 +1,5 @@
 /**
- * Global state management for claude-sms
+ * Global state management for claude-code-anywhere
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';

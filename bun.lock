@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "claude-sms",
+      "name": "claude-code-anywhere",
       "dependencies": {
         "commander": "^12.1.0",
         "dotenv": "^17.2.3",

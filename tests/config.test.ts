@@ -270,14 +270,14 @@ describe('config', () => {
       process.env['HOME'] = '/Users/test';
       delete process.env['USERPROFILE'];
 
-      expect(getStateDir()).toBe('/Users/test/.claude/claude-sms');
+      expect(getStateDir()).toBe('/Users/test/.claude/claude-code-anywhere');
     });
 
     it('uses USERPROFILE when HOME is not available', () => {
       delete process.env['HOME'];
       process.env['USERPROFILE'] = 'C:\\Users\\test';
 
-      expect(getStateDir()).toBe('C:\\Users\\test/.claude/claude-sms');
+      expect(getStateDir()).toBe('C:\\Users\\test/.claude/claude-code-anywhere');
     });
 
     it('throws when neither HOME nor USERPROFILE is available', () => {
@@ -308,7 +308,7 @@ describe('config', () => {
     it('returns state.json path under state directory', () => {
       process.env['HOME'] = '/Users/test';
 
-      expect(getStateFilePath()).toBe('/Users/test/.claude/claude-sms/state.json');
+      expect(getStateFilePath()).toBe('/Users/test/.claude/claude-code-anywhere/state.json');
     });
   });
 });

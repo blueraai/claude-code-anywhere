@@ -4,7 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 
 // Mock config to use temp directory
-const testDir = join(tmpdir(), 'claude-sms-cli-test-' + Date.now());
+const testDir = join(tmpdir(), 'claude-code-anywhere-cli-test-' + Date.now());
 const testStateFile = join(testDir, 'state.json');
 
 vi.mock('../src/shared/config.js', () => ({

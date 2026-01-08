@@ -1,10 +1,10 @@
 {
-  "name": "claude-sms",
+  "name": "claude-code-anywhere",
   "version": "0.2.0",
   "description": "Email notifications and bidirectional communication for Claude Code",
   "type": "module",
   "bin": {
-    "claude-sms": "./dist/cli.js"
+    "claude-code-anywhere": "./dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -54,12 +54,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chris-bluera/claude-sms.git"
+    "url": "git+https://github.com/chris-bluera/claude-code-anywhere.git"
   },
   "bugs": {
-    "url": "https://github.com/chris-bluera/claude-sms/issues"
+    "url": "https://github.com/chris-bluera/claude-code-anywhere/issues"
   },
-  "homepage": "https://github.com/chris-bluera/claude-sms#readme",
+  "homepage": "https://github.com/chris-bluera/claude-code-anywhere#readme",
   "engines": {
     "node": ">=20.0.0"
   },

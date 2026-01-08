@@ -28,10 +28,10 @@ curl -s http://localhost:3847/api/status
 
 2. If not running, start it in the background:
 ```bash
-cd /Users/chris/repos/claude-sms && nohup bun run server > /tmp/claude-sms-server.log 2>&1 &
+cd "${CLAUDE_PLUGIN_ROOT}" && nohup bun run server > /tmp/claude-code-anywhere-server.log 2>&1 &
 ```
 
-**Note:** Server logs are written to `logs/MM-DD-YY.log` in the repo directory.
+**Note:** Server logs are written to `logs/MM-DD-YY.log` in the plugin directory.
 
 3. Wait for server to be ready (up to 5 seconds):
 ```bash

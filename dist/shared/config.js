@@ -127,7 +127,7 @@ export function getStateDir() {
     if (home === undefined) {
         throw new Error('Cannot determine home directory: neither HOME nor USERPROFILE environment variable is set');
     }
-    return `${home}/.claude/claude-sms`;
+    return `${home}/.claude/claude-code-anywhere`;
 }
 /**
  * Get the state file path
