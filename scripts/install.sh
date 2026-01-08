@@ -376,6 +376,10 @@ main() {
     # Write manifest
     write_manifest "$modified_files" "$service_type" "$service_path"
 
+    # Clear the "shown install message" marker so fresh installs see updated messages
+    local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/claude-code-anywhere"
+    rm -f "$config_dir/shown-install-message" 2>/dev/null || true
+
     echo ""
     echo -e "${GREEN}╭────────────────────────────────────────────────╮${NC}"
     echo -e "${GREEN}│         Installation Complete! 🎉              │${NC}"

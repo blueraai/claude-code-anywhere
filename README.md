@@ -125,40 +125,43 @@ sequenceDiagram
 
 ## Quick Start
 
-### Option A: Plugin Installation (Per-Session)
-
-Install as a Claude Code plugin — notifications work in sessions that load this plugin:
+### 1. Install the Plugin
 
 ```bash
 claude /plugin add github.com/blueraai/claude-code-anywhere
 ```
 
-### Option B: Global Installation (All Sessions)
+### 2. Choose Your Mode
 
-For notifications across ALL Claude Code sessions on your machine:
+On first session, you'll see a one-time message explaining the two notification modes:
 
-```bash
-# Clone and run the installer
-git clone https://github.com/blueraai/claude-code-anywhere.git
-cd claude-code-anywhere
-bash scripts/install.sh
-```
-
-This creates a shim that automatically loads the plugin for every `claude` command.
+| Mode | Description | Best For |
+|------|-------------|----------|
+| **Session-Only** | Run `/notify on` in each terminal | Trying it out, occasional use |
+| **Global** | All sessions automatically connected | Daily use, multiple projects |
 
 <details>
-<summary><b>What the installer does</b></summary>
+<summary><b>What's the difference?</b></summary>
 
-1. Creates a shim at `~/.claude-notify/bin/claude`
-2. Adds the shim to your PATH (in .zshrc/.bashrc)
-3. Installs the plugin to `~/.claude-notify/plugins/`
-4. Sets up a background daemon (launchd on macOS, systemd on Linux)
+**Session-Only (default):**
+- Notifications work in sessions where you run `/notify on`
+- Each terminal/IDE needs its own `/notify on`
+- Server stops when you close the session
 
-After installation, restart your shell and run `/notify-doctor` to verify.
+**Global:**
+- Notifications work in ALL Claude sessions automatically
+- Background daemon runs persistently (survives reboots)
+- Reply from your phone → routes to the correct session
+- Installs: PATH shim + background service + one line in .zshrc/.bashrc
 
 </details>
 
-### Configure Channels
+To enable global mode:
+```bash
+/notify install
+```
+
+### 3. Configure Channels
 
 Copy `.env.example` to `.env` (in the plugin directory) and configure:
 
@@ -177,12 +180,12 @@ TELEGRAM_CHAT_ID=123456789              # Your chat ID
 
 You can configure one or both channels.
 
-### Enable and Test
+### 4. Enable and Test
 
 ```bash
-/notify on      # Starts server and enables hooks
+/notify on      # Starts server (session-only mode)
 /notify-test    # Sends test message to all configured channels
-/notify-doctor  # Diagnose installation (after global install)
+/notify-doctor  # Diagnose installation and show current mode
 ```
 
 ---
@@ -289,7 +292,11 @@ TELEGRAM_CHAT_ID=123456789
 
 **Replying to Notifications**
 
-Simply send a message in the chat — it will automatically be linked to the most recent notification. You can also use Telegram's reply feature for explicit threading.
+**Single session**: Just send a message — it links to the most recent notification.
+
+**Multiple concurrent sessions**: Use Telegram's **reply feature** (swipe left on mobile, or right-click → Reply on desktop) to target the correct session. Without explicit reply, your message goes to whichever session sent the most recent notification.
+
+> **Why the difference from Email?** Email automatically threads via subject line (`[CC-xxx]`) and In-Reply-To headers. Telegram doesn't have threading, so it relies on explicit replies or the `[CC-xxx]` prefix in your message.
 
 </details>
 
@@ -355,12 +362,48 @@ Notifications enabled.
 
 ### `/notify off`
 
-Stop the bridge server and disable notifications.
+Stop the bridge server and disable notifications (this session).
 
 <details>
 <summary><b>Example output</b></summary>
 
 Notifications disabled. Server stopped.
+
+</details>
+
+---
+
+### `/notify install`
+
+Install global notification support for all Claude sessions.
+
+<details>
+<summary><b>What it does</b></summary>
+
+1. Creates a PATH shim at `~/.claude-notify/bin/claude`
+2. Adds the shim to your PATH (in .zshrc/.bashrc)
+3. Installs the plugin to `~/.claude-notify/plugins/`
+4. Sets up a background daemon (launchd on macOS, systemd on Linux)
+
+After installation, restart your shell. All future `claude` sessions will automatically have notifications enabled.
+
+</details>
+
+---
+
+### `/notify uninstall`
+
+Remove global installation and revert to session-only mode.
+
+<details>
+<summary><b>What it removes</b></summary>
+
+- PATH shim at `~/.claude-notify/bin/claude`
+- PATH entry from .zshrc/.bashrc
+- Background daemon (launchd/systemd)
+- Plugin copy at `~/.claude-notify/plugins/`
+
+Your `.env` configuration is preserved as a backup.
 
 </details>
 
