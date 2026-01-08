@@ -14,7 +14,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Installation paths
-INSTALL_ROOT="$HOME/.claude-notify"
+INSTALL_ROOT="$HOME/.claude-code-anywhere"
 MANIFEST_FILE="$INSTALL_ROOT/manifest.json"
 
 # Markers for rc file modification
@@ -59,7 +59,7 @@ stop_service() {
     echo -e "${YELLOW}→ Stopping notification service...${NC}"
 
     if [ "$service_type" = "launchd" ]; then
-        local plist_file="$HOME/Library/LaunchAgents/com.claude.notify.plist"
+        local plist_file="$HOME/Library/LaunchAgents/com.claude.code-anywhere.plist"
         if [ -f "$plist_file" ]; then
             launchctl unload "$plist_file" 2>/dev/null || true
             rm -f "$plist_file"
@@ -68,22 +68,22 @@ stop_service() {
             echo -e "${CYAN}  ○ launchd plist not found (already removed?)${NC}"
         fi
     elif [ "$service_type" = "systemd" ]; then
-        systemctl --user stop claude-notify.service 2>/dev/null || true
-        systemctl --user disable claude-notify.service 2>/dev/null || true
-        rm -f "$HOME/.config/systemd/user/claude-notify.service"
+        systemctl --user stop claude-code-anywhere.service 2>/dev/null || true
+        systemctl --user disable claude-code-anywhere.service 2>/dev/null || true
+        rm -f "$HOME/.config/systemd/user/claude-code-anywhere.service"
         systemctl --user daemon-reload 2>/dev/null || true
         echo -e "${GREEN}  ✓ systemd service stopped and removed${NC}"
     else
         # Try both just in case
-        if [ -f "$HOME/Library/LaunchAgents/com.claude.notify.plist" ]; then
-            launchctl unload "$HOME/Library/LaunchAgents/com.claude.notify.plist" 2>/dev/null || true
-            rm -f "$HOME/Library/LaunchAgents/com.claude.notify.plist"
+        if [ -f "$HOME/Library/LaunchAgents/com.claude.code-anywhere.plist" ]; then
+            launchctl unload "$HOME/Library/LaunchAgents/com.claude.code-anywhere.plist" 2>/dev/null || true
+            rm -f "$HOME/Library/LaunchAgents/com.claude.code-anywhere.plist"
             echo -e "${GREEN}  ✓ launchd service removed${NC}"
         fi
-        if [ -f "$HOME/.config/systemd/user/claude-notify.service" ]; then
-            systemctl --user stop claude-notify.service 2>/dev/null || true
-            systemctl --user disable claude-notify.service 2>/dev/null || true
-            rm -f "$HOME/.config/systemd/user/claude-notify.service"
+        if [ -f "$HOME/.config/systemd/user/claude-code-anywhere.service" ]; then
+            systemctl --user stop claude-code-anywhere.service 2>/dev/null || true
+            systemctl --user disable claude-code-anywhere.service 2>/dev/null || true
+            rm -f "$HOME/.config/systemd/user/claude-code-anywhere.service"
             echo -e "${GREEN}  ✓ systemd service removed${NC}"
         fi
     fi
@@ -120,11 +120,11 @@ remove_install_dir() {
         # Preserve .env if user wants
         if [ -f "$INSTALL_ROOT/plugins/claude-code-anywhere/.env" ]; then
             echo -e "${YELLOW}  ⚠ Found .env configuration file${NC}"
-            echo -e "  Save a backup to ~/.claude-notify-env.backup? (y/N)"
+            echo -e "  Save a backup to ~/.claude-code-anywhere-env.backup? (y/N)"
             read -r save_env
             if [[ "$save_env" =~ ^[Yy]$ ]]; then
-                cp "$INSTALL_ROOT/plugins/claude-code-anywhere/.env" "$HOME/.claude-notify-env.backup"
-                echo -e "${GREEN}  ✓ Saved .env backup to ~/.claude-notify-env.backup${NC}"
+                cp "$INSTALL_ROOT/plugins/claude-code-anywhere/.env" "$HOME/.claude-code-anywhere-env.backup"
+                echo -e "${GREEN}  ✓ Saved .env backup to ~/.claude-code-anywhere-env.backup${NC}"
             fi
         fi
 
@@ -140,8 +140,8 @@ main() {
     echo -e "${YELLOW}This will remove Claude Code Anywhere from your system.${NC}"
     echo ""
     echo "The following will be removed:"
-    echo "  • Shim at ~/.claude-notify/bin/claude"
-    echo "  • Plugin at ~/.claude-notify/plugins/"
+    echo "  • Shim at ~/.claude-code-anywhere/bin/claude"
+    echo "  • Plugin at ~/.claude-code-anywhere/plugins/"
     echo "  • PATH configuration from shell rc files"
     echo "  • Background notification service"
     echo ""
@@ -173,8 +173,8 @@ main() {
     echo "  • Restart your shell to update PATH"
     echo "  • The original 'claude' CLI is still available"
     echo ""
-    if [ -f "$HOME/.claude-notify-env.backup" ]; then
-        echo "  • Your .env backup is at: ~/.claude-notify-env.backup"
+    if [ -f "$HOME/.claude-code-anywhere-env.backup" ]; then
+        echo "  • Your .env backup is at: ~/.claude-code-anywhere-env.backup"
         echo ""
     fi
     echo "Thanks for trying Claude Code Anywhere!"

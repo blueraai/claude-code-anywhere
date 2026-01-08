@@ -14,9 +14,14 @@ See [GitHub #9354](https://github.com/anthropics/claude-code/issues/9354).
 
 ## Server Commands
 
+All commands use the port from the `port` file (written by server on startup):
+```bash
+PORT=$(cat "<plugin-root>/port" 2>/dev/null || echo 3847)
+```
+
 ### Check Status
 ```bash
-curl -s http://localhost:3847/api/status
+curl -s "http://localhost:$PORT/api/status"
 ```
 
 ### Start Server
@@ -27,36 +32,36 @@ cd "<plugin-root>" && nohup bun run server >> logs/server.log 2>&1 &
 
 Wait for ready (up to 5 seconds):
 ```bash
-for i in 1 2 3 4 5; do curl -s http://localhost:3847/api/status >/dev/null 2>&1 && break || sleep 1; done
+for i in 1 2 3 4 5; do curl -s "http://localhost:$PORT/api/status" >/dev/null 2>&1 && break || sleep 1; done
 ```
 
 ### Stop Server
 ```bash
-kill $(lsof -t -i:3847) 2>/dev/null || true
+pkill -f "bun run server" 2>/dev/null || true
 ```
 
 ## Global Enable/Disable
 
 ### Enable Notifications
 ```bash
-curl -s -X POST http://localhost:3847/api/enable
+curl -s -X POST "http://localhost:$PORT/api/enable"
 ```
 
 ### Disable Notifications
 ```bash
-curl -s -X POST http://localhost:3847/api/disable
+curl -s -X POST "http://localhost:$PORT/api/disable"
 ```
 
 ## Send Test Message
 ```bash
-curl -s -X POST http://localhost:3847/api/send \
+curl -s -X POST "http://localhost:$PORT/api/send" \
   -H 'Content-Type: application/json' \
   -d '{"sessionId": "'$CLAUDE_SESSION_ID'", "event": "Notification", "message": "Test message from Claude Code. Your notification setup is working!"}'
 ```
 
 ## Logs
 
-Server logs: `logs/MM-DD-YY.log` in plugin directory.
+Server logs: `logs/YY-MM-DD.log` in plugin directory.
 
 ## Troubleshooting
 

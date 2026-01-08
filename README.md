@@ -165,7 +165,7 @@ To enable global mode:
 
 Copy `.env.example` to `.env` and configure:
 - **Session-only mode**: In the plugin directory (where `/plugin add` installed it)
-- **Global mode**: `~/.claude-notify/plugins/claude-code-anywhere/.env`
+- **Global mode**: `~/.claude-code-anywhere/plugins/claude-code-anywhere/.env`
 
 **Email:**
 ```env
@@ -382,9 +382,9 @@ Install global notification support for all Claude sessions.
 <details>
 <summary><b>What it does</b></summary>
 
-1. Creates a PATH shim at `~/.claude-notify/bin/claude`
+1. Creates a PATH shim at `~/.claude-code-anywhere/bin/claude`
 2. Adds the shim to your PATH (in .zshrc/.bashrc)
-3. Installs the plugin to `~/.claude-notify/plugins/`
+3. Installs the plugin to `~/.claude-code-anywhere/plugins/`
 4. Sets up a background daemon (launchd on macOS, systemd on Linux)
 
 After installation, restart your shell. All future `claude` sessions will automatically have notifications enabled.
@@ -404,10 +404,10 @@ Remove global installation and revert to session-only mode.
 <details>
 <summary><b>What it removes</b></summary>
 
-- PATH shim at `~/.claude-notify/bin/claude`
+- PATH shim at `~/.claude-code-anywhere/bin/claude`
 - PATH entry from .zshrc/.bashrc
 - Background daemon (launchd/systemd)
-- Plugin copy at `~/.claude-notify/plugins/`
+- Plugin copy at `~/.claude-code-anywhere/plugins/`
 
 Your `.env` configuration is preserved as a backup.
 
@@ -471,7 +471,7 @@ Diagnose installation and configuration issues. Especially useful after global i
 ╰─────────────────────────────────────────╯
 
 ## PATH Check
-✅ Shim is first in PATH: ~/.claude-notify/bin/claude
+✅ Shim is first in PATH: ~/.claude-code-anywhere/bin/claude
    Real claude: ~/.local/bin/claude
 
 ## Service Status
@@ -480,7 +480,7 @@ Diagnose installation and configuration issues. Especially useful after global i
 
 ## Plugin Installation
 ✅ Plugin installed: vX.Y.Z
-   Path: ~/.claude-notify/plugins/claude-code-anywhere
+   Path: ~/.claude-code-anywhere/plugins/claude-code-anywhere
 
 ## Channels
 ✅ Email: you@example.com
@@ -618,11 +618,11 @@ On first session, a one-time message explains SESSION-ONLY vs GLOBAL modes. To s
 
 1. **Daemon not starting:**
    - macOS: `launchctl list | grep claude`
-   - Check logs: `ls ~/.claude-notify/plugins/claude-code-anywhere/logs/`
-   - View latest: `cat ~/.claude-notify/plugins/claude-code-anywhere/logs/*.log | tail -50`
+   - Check logs: `ls ~/.claude-code-anywhere/plugins/claude-code-anywhere/logs/`
+   - View latest: `cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/logs/*.log | tail -50`
 
 2. **Shim not first in PATH:**
-   - Run `which claude` — should show `~/.claude-notify/bin/claude`
+   - Run `which claude` — should show `~/.claude-code-anywhere/bin/claude`
    - Restart shell: `exec $SHELL`
    - Verify PATH: `echo $PATH | tr ':' '\n' | head -5`
 

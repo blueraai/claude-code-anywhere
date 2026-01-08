@@ -14,7 +14,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Installation paths
-INSTALL_ROOT="$HOME/.claude-notify"
+INSTALL_ROOT="$HOME/.claude-code-anywhere"
 SHIM_DIR="$INSTALL_ROOT/bin"
 PLUGIN_DIR="$INSTALL_ROOT/plugins/claude-code-anywhere"
 MANIFEST_FILE="$INSTALL_ROOT/manifest.json"
@@ -88,8 +88,8 @@ create_shim() {
 # Intercepts 'claude' and adds --plugin-dir for notifications
 #
 
-PLUGIN_DIR="$HOME/.claude-notify/plugins"
-MY_PATH="$HOME/.claude-notify/bin/claude"
+PLUGIN_DIR="$HOME/.claude-code-anywhere/plugins"
+MY_PATH="$HOME/.claude-code-anywhere/bin/claude"
 
 # Find the REAL claude binary (excluding ourselves)
 find_real_claude() {
@@ -200,7 +200,7 @@ configure_path() {
     fi
 
     local path_block="$RC_MARKER_START
-export PATH=\"\$HOME/.claude-notify/bin:\$PATH\"
+export PATH=\"\$HOME/.claude-code-anywhere/bin:\$PATH\"
 $RC_MARKER_END"
 
     for rc_file in "${rc_files[@]}"; do
@@ -225,7 +225,7 @@ install_launchd_service() {
     echo -e "${YELLOW}→ Installing launchd service...${NC}"
 
     local plist_dir="$HOME/Library/LaunchAgents"
-    local plist_file="$plist_dir/com.claude.notify.plist"
+    local plist_file="$plist_dir/com.claude.code-anywhere.plist"
     mkdir -p "$plist_dir"
 
     # Find bun path
@@ -238,7 +238,7 @@ install_launchd_service() {
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.claude.notify</string>
+    <string>com.claude.code-anywhere</string>
     <key>ProgramArguments</key>
     <array>
         <string>$bun_path</string>
@@ -273,7 +273,7 @@ install_systemd_service() {
     echo -e "${YELLOW}→ Installing systemd user service...${NC}"
 
     local service_dir="$HOME/.config/systemd/user"
-    local service_file="$service_dir/claude-notify.service"
+    local service_file="$service_dir/claude-code-anywhere.service"
 
     mkdir -p "$service_dir"
 
@@ -283,7 +283,7 @@ install_systemd_service() {
 
     cat > "$service_file" << SERVICE_EOF
 [Unit]
-Description=Claude Code Anywhere Notification Daemon
+Description=Claude Code Anywhere Notification Server
 After=network.target
 
 [Service]
@@ -299,8 +299,8 @@ SERVICE_EOF
 
     # Enable and start the service
     systemctl --user daemon-reload
-    systemctl --user enable claude-notify.service
-    systemctl --user start claude-notify.service
+    systemctl --user enable claude-code-anywhere.service
+    systemctl --user start claude-code-anywhere.service
 
     echo -e "${GREEN}  ✓ systemd user service installed and started${NC}"
     echo "$service_file"
@@ -392,7 +392,7 @@ main() {
     echo ""
     echo "  2. Verify the shim is active:"
     echo -e "     ${YELLOW}which claude${NC}"
-    echo "     Should show: ~/.claude-notify/bin/claude"
+    echo "     Should show: ~/.claude-code-anywhere/bin/claude"
     echo ""
     echo "  3. Configure your notification channels:"
     echo -e "     ${YELLOW}vi $PLUGIN_DIR/.env${NC}"

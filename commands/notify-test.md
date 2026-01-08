@@ -1,7 +1,8 @@
 ---
 description: Send a test notification to verify setup
 allowed-tools:
-  - Bash(curl *)
+  - Bash(curl * http://localhost:*/api/*)
+  - Bash(cat */port)
 ---
 
 # /notify-test

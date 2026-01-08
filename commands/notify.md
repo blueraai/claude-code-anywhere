@@ -4,13 +4,14 @@ argument-hint: on | off | status | install | uninstall
 allowed-tools:
   - Bash(.claude/cpr.sh *)
   - Bash(curl * http://localhost:*/api/*)
-  - Bash(test -x ~/.claude-notify/*)
+  - Bash(test -x ~/.claude-code-anywhere/*)
+  - Bash(cat */port)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install.sh)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/uninstall.sh)
-  - Bash(launchctl *)
-  - Bash(systemctl *)
-  - Bash(kill *)
-  - Bash(rm -f *)
+  - Bash(pkill -f "bun run server" *)
+  - Bash(launchctl * ~/Library/LaunchAgents/com.claude.code-anywhere.plist)
+  - Bash(systemctl --user * claude-code-anywhere*)
+  - Bash(rm -f ~/.config/claude-code-anywhere/*)
 ---
 
 # /notify
@@ -31,7 +32,7 @@ See @skills/notify-server/skill.md for implementation details.
 
 ## Installation Status
 
-!`test -x ~/.claude-notify/bin/claude && echo "GLOBAL" || echo "SESSION_ONLY"`
+!`test -x ~/.claude-code-anywhere/bin/claude && echo "GLOBAL" || echo "SESSION_ONLY"`
 
 ## Usage
 
@@ -67,7 +68,7 @@ Same as `/notify install` - see below.
 ### `off --global`
 1. Stop the global daemon:
    - macOS: `launchctl unload ~/Library/LaunchAgents/com.claude.notify.plist`
-   - Linux: `systemctl --user stop claude-notify.service`
+   - Linux: `systemctl --user stop claude-code-anywhere.service`
 2. Note: This keeps the shim installed for easy re-enable
 3. To fully remove, use `/notify uninstall`
 

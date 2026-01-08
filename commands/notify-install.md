@@ -2,7 +2,7 @@
 description: Install global notification support for all Claude sessions
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install.sh)
-  - Bash(rm -f *)
+  - Bash(rm -f ~/.config/claude-code-anywhere/*)
 ---
 
 # /notify install
@@ -11,11 +11,11 @@ Install global notification support so ALL Claude Code sessions get notification
 
 ## What This Installs
 
-1. **PATH shim** at `~/.claude-notify/bin/claude`
+1. **PATH shim** at `~/.claude-code-anywhere/bin/claude`
    - Intercepts `claude` commands and auto-loads the plugin
 2. **Background daemon** (launchd on macOS, systemd on Linux)
    - Runs persistently, survives reboots
-3. **Plugin files** at `~/.claude-notify/plugins/claude-code-anywhere/`
+3. **Plugin files** at `~/.claude-code-anywhere/plugins/claude-code-anywhere/`
 4. **One line** added to your `.zshrc`/`.bashrc` for PATH
 
 ## Before vs After
@@ -39,7 +39,7 @@ Install global notification support so ALL Claude Code sessions get notification
 After running this command, tell the user:
 
 1. **Restart your shell**: `exec $SHELL` or open a new terminal
-2. **Verify**: `which claude` should show `~/.claude-notify/bin/claude`
+2. **Verify**: `which claude` should show `~/.claude-code-anywhere/bin/claude`
 3. **Test**: Start a new Claude session and run `/notify-test`
 4. **Diagnose**: Run `/notify-doctor` if anything seems wrong
 
@@ -49,4 +49,4 @@ After running this command, tell the user:
 /notify uninstall
 ```
 
-Or manually: `bash ~/.claude-notify/plugins/claude-code-anywhere/scripts/uninstall.sh`
+Or manually: `bash ~/.claude-code-anywhere/plugins/claude-code-anywhere/scripts/uninstall.sh`

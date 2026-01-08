@@ -2,14 +2,14 @@
 description: Diagnose Claude Code Anywhere installation and configuration
 allowed-tools:
   - Bash(which -a claude)
-  - Bash(curl -s --max-time * http://localhost:3847/api/status *)
-  - Bash(launchctl list * com.claude.notify *)
-  - Bash(systemctl --user is-active claude-notify.service *)
-  - Bash(test -f ~/.claude-notify/*)
-  - Bash(test -d *)
-  - Read(~/.claude-notify/manifest.json)
-  - Read(~/.claude-notify/plugins/claude-code-anywhere/.env)
-  - Read(~/.claude-notify/plugins/claude-code-anywhere/plugin.json)
+  - Bash(curl * http://localhost:*/api/*)
+  - Bash(cat */port)
+  - Bash(launchctl list * com.claude.code-anywhere *)
+  - Bash(systemctl --user is-active claude-code-anywhere.service *)
+  - Bash(test -f ~/.claude-code-anywhere/*)
+  - Read(~/.claude-code-anywhere/manifest.json)
+  - Read(~/.claude-code-anywhere/plugins/claude-code-anywhere/.env)
+  - Read(~/.claude-code-anywhere/plugins/claude-code-anywhere/plugin.json)
 ---
 
 # /notify-doctor
@@ -20,12 +20,12 @@ Diagnose installation status and configuration of Claude Code Anywhere.
 
 First, detect which installation mode is active:
 
-1. **Global Install**: `~/.claude-notify/bin/claude` shim exists
+1. **Global Install**: `~/.claude-code-anywhere/bin/claude` shim exists
 2. **Plugin Install**: Installed via `claude /plugin add`
 3. **Dogfooding**: Running via `--plugin-dir .` (development mode)
 
 Detection order:
-1. Check if `~/.claude-notify/bin/claude` exists → Global Install
+1. Check if `~/.claude-code-anywhere/bin/claude` exists → Global Install
 2. Check if server is running via API → Some mode is active
 3. If server running but no global install → Dogfooding/Plugin mode
 
@@ -35,7 +35,7 @@ Detection order:
 
 ```bash
 # Check for global install
-test -f ~/.claude-notify/bin/claude && echo "global" || echo "not-global"
+test -f ~/.claude-code-anywhere/bin/claude && echo "global" || echo "not-global"
 ```
 
 ```bash
@@ -87,7 +87,7 @@ launchctl list | grep com.claude.notify 2>/dev/null || echo "not found"
 
 **Linux:**
 ```bash
-systemctl --user is-active claude-notify.service 2>/dev/null || echo "not found"
+systemctl --user is-active claude-code-anywhere.service 2>/dev/null || echo "not found"
 ```
 
 ## Output Format
@@ -102,7 +102,7 @@ systemctl --user is-active claude-notify.service 2>/dev/null || echo "not found"
 ✅ Global Install (all sessions get notifications)
 
 ## PATH Check
-✅ Shim is first in PATH: ~/.claude-notify/bin/claude
+✅ Shim is first in PATH: ~/.claude-code-anywhere/bin/claude
    Real claude: /opt/homebrew/bin/claude
 
 ## Service Status
@@ -173,7 +173,7 @@ If shim not first in PATH:
 **VS Code / Cursor:**
 ```json
 "terminal.integrated.env.osx": {
-  "PATH": "${env:HOME}/.claude-notify/bin:${env:PATH}"
+  "PATH": "${env:HOME}/.claude-code-anywhere/bin:${env:PATH}"
 }
 ```
 

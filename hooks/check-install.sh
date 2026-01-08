@@ -13,7 +13,7 @@ set -e
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude-code-anywhere"
 DISABLE_FILE="$CONFIG_DIR/disable-autoinstall"
 SHOWN_FILE="$CONFIG_DIR/shown-install-message"
-SHIM_PATH="$HOME/.claude-notify/bin/claude"
+SHIM_PATH="$HOME/.claude-code-anywhere/bin/claude"
 
 mkdir -p "$CONFIG_DIR"
 
@@ -77,7 +77,7 @@ You have two options for how notifications work:
 │  Good for: Daily use, multiple projects, power users            │
 │                                                                 │
 │  What it installs:                                              │
-│    • PATH shim at ~/.claude-notify/bin/claude                   │
+│    • PATH shim at ~/.claude-code-anywhere/bin/claude                   │
 │    • Background service (launchd on macOS, systemd on Linux)    │
 │    • Adds one line to your .zshrc/.bashrc                       │
 └─────────────────────────────────────────────────────────────────┘
