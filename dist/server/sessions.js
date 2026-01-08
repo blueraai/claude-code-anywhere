@@ -186,14 +186,8 @@ class SessionManager {
                 response,
             };
         }
-        // No session ID prefix - check if there's only one active session
-        if (this.sessions.size === 1) {
-            const [sessionId] = this.sessions.keys();
-            return {
-                sessionId: sessionId ?? null,
-                response: body.trim(),
-            };
-        }
+        // No session ID prefix - require explicit session ID for safety
+        // (Previously guessed if only one session, but this is dangerous with multiple sessions)
         return {
             sessionId: null,
             response: body.trim(),
