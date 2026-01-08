@@ -493,15 +493,20 @@ Changes take effect on Claude Code restart (no reinstall needed).
 
 ### Known Limitation: Plugin Root Path
 
-`${CLAUDE_PLUGIN_ROOT}` is only available inside hook scripts, **not** when Claude executes bash commands from skill/command instructions. This is a known Claude Code limitation ([#9354](https://github.com/anthropics/claude-code/issues/9354), [#12541](https://github.com/anthropics/claude-code/issues/12541)).
+`${CLAUDE_PLUGIN_ROOT}` is available in some contexts but **not** when Claude executes bash commands from skill/command instructions. This is a known Claude Code limitation ([#9354](https://github.com/anthropics/claude-code/issues/9354), [#12541](https://github.com/anthropics/claude-code/issues/12541)).
 
-**Workaround**: Commands use dynamic context (`!`) to detect the plugin root at runtime:
+| Context | `CLAUDE_PLUGIN_ROOT` Available |
+|---------|-------------------------------|
+| Hook scripts (directly invoked) | Yes |
+| Dynamic context (`!` backtick) | Yes |
+| Plugin frontmatter (`allowed-tools`) | Yes (v2.1.0+) |
+| Bash commands from skill instructions | **No** |
+
+**Workaround**: Commands use dynamic context (`!`) to detect the plugin root, which Claude then uses in subsequent bash commands:
 ```markdown
 ## Plugin Root
 !`find ~ -maxdepth 5 -name "plugin.json" -exec grep -l '"name": "claude-code-anywhere"' {} \; 2>/dev/null | head -1 | xargs dirname`
 ```
-
-This finds the plugin by searching for its `plugin.json` with the matching name field.
 
 ### Releasing
 
