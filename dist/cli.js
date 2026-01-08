@@ -3,12 +3,12 @@
  * Claude Code Anywhere CLI - Command line interface for the notification bridge
  */
 import 'dotenv/config';
-import packageJson from '../package.json' with { type: 'json' };
 import { Command } from 'commander';
-import { createBridgeServer } from './server/index.js';
-import { loadEmailConfig, loadAppConfig } from './shared/config.js';
-import { enableGlobal, disableGlobal, loadState } from './server/state.js';
+import packageJson from '../package.json' with { type: 'json' };
 import { EmailClient } from './server/email.js';
+import { createBridgeServer } from './server/index.js';
+import { enableGlobal, disableGlobal, loadState } from './server/state.js';
+import { loadEmailConfig, loadAppConfig } from './shared/config.js';
 const program = new Command();
 /**
  * Type guard for status response

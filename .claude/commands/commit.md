@@ -23,7 +23,9 @@ Create atomic, well-organized commits. See @.claude/skills/atomic-commits/skill.
 
 Pre-commit hooks run automatically:
 - **Doc-only changes**: Skips all validation (instant)
-- **Code changes**: Runs lint + typecheck per language
+- **Code changes**: Runs format check + lint + deadcode + typecheck + tests + build
+
+Commit-msg hook validates conventional commit format via commitlint.
 
 If hooks fail, fix issues and retry. Never use `--no-verify`.
 

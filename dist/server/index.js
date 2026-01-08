@@ -4,12 +4,12 @@
  * Supports multiple channels: Email (SMTP/IMAP), Telegram
  */
 import { createServer } from 'http';
-import { loadEmailConfig, loadTelegramConfig } from '../shared/config.js';
-import { sessionManager } from './sessions.js';
-import { EmailClient } from './email.js';
-import { TelegramClient } from './telegram.js';
 import { ChannelManager } from './channels.js';
+import { EmailClient } from './email.js';
 import { handleSendEmail, handleRegisterSession, handleGetResponse, handleEnableSession, handleDisableSession, handleCheckSessionEnabled, handleEnableGlobal, handleDisableGlobal, handleStatus, handleRoot, } from './routes.js';
+import { sessionManager } from './sessions.js';
+import { TelegramClient } from './telegram.js';
+import { loadEmailConfig, loadTelegramConfig } from '../shared/config.js';
 import { createLogger } from '../shared/logger.js';
 const log = createLogger('server');
 const DEFAULT_PORT = 3847;

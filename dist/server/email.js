@@ -4,11 +4,11 @@
  * Implements the Channel interface for multi-channel support.
  * Uses Gmail by default (smtp.gmail.com / imap.gmail.com).
  */
-import nodemailer from 'nodemailer';
 import { ImapFlow } from 'imapflow';
+import nodemailer from 'nodemailer';
+import { sessionManager } from './sessions.js';
 import { MAX_EMAIL_BODY_LENGTH } from '../shared/constants.js';
 import { createLogger } from '../shared/logger.js';
-import { sessionManager } from './sessions.js';
 const log = createLogger('email');
 /**
  * Format an email subject with session ID prefix
@@ -262,7 +262,11 @@ export class EmailClient {
                     });
                     // Parse the message - use In-Reply-To header for matching
                     const parsed = this.parseEmail(subject, body, inReplyTo);
-                    log.info('Parsed email', { sessionId: parsed.sessionId, response: parsed.response, matchedBy: inReplyTo !== undefined ? 'inReplyTo' : 'subject' });
+                    log.info('Parsed email', {
+                        sessionId: parsed.sessionId,
+                        response: parsed.response,
+                        matchedBy: inReplyTo !== undefined ? 'inReplyTo' : 'subject',
+                    });
                     // Convert to ChannelResponse and call callback
                     if (parsed.sessionId !== null) {
                         const channelResponse = {
@@ -397,13 +401,13 @@ export class EmailClient {
      * Decode quoted-printable encoded text
      */
     decodeQuotedPrintable(text) {
-        return text
+        return (text
             // Handle soft line breaks (=\n)
             .replace(/=\r?\n/g, '')
             // Decode =XX hex sequences
             .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => {
             return String.fromCharCode(parseInt(hex, 16));
-        });
+        }));
     }
     /**
      * Stop polling for emails

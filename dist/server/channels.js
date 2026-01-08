@@ -60,7 +60,10 @@ export class ChannelManager {
             results.set(name, result);
             if (result.success) {
                 successCount++;
-                log.info(`Sent notification via ${name}`, { sessionId: notification.sessionId, messageId: result.data });
+                log.info(`Sent notification via ${name}`, {
+                    sessionId: notification.sessionId,
+                    messageId: result.data,
+                });
             }
             else {
                 failureCount++;

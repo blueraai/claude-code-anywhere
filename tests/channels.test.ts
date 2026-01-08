@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ChannelManager } from '../src/server/channels.js';
-import type { Channel, ChannelNotification, ChannelStatus, ResponseCallback } from '../src/shared/channel.js';
+import type {
+  Channel,
+  ChannelNotification,
+  ChannelStatus,
+  ResponseCallback,
+} from '../src/shared/channel.js';
 import type { Result } from '../src/shared/types.js';
 
 /**
@@ -11,7 +16,9 @@ function createMockChannel(name: string, enabled: boolean = true): Channel {
     name,
     enabled,
     initialize: vi.fn().mockResolvedValue(undefined),
-    send: vi.fn().mockResolvedValue({ success: true, data: `${name}-msg-123` } as Result<string, string>),
+    send: vi
+      .fn()
+      .mockResolvedValue({ success: true, data: `${name}-msg-123` } as Result<string, string>),
     startPolling: vi.fn(),
     stopPolling: vi.fn(),
     dispose: vi.fn(),

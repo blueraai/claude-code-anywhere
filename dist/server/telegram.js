@@ -5,7 +5,7 @@
  * Uses polling (getUpdates) for receiving messages.
  */
 import axios from 'axios';
-import { TELEGRAM_API_BASE_URL, TELEGRAM_POLL_INTERVAL_MS, TELEGRAM_POLL_TIMEOUT_SECONDS } from '../shared/constants.js';
+import { TELEGRAM_API_BASE_URL, TELEGRAM_POLL_INTERVAL_MS, TELEGRAM_POLL_TIMEOUT_SECONDS, } from '../shared/constants.js';
 import { createLogger } from '../shared/logger.js';
 const log = createLogger('telegram');
 /**
@@ -79,7 +79,7 @@ export class TelegramClient {
     lastError = null;
     isPolling = false;
     sentMessageIds = new Map(); // messageId -> sessionId
-    lastSentSessionId = null; // eslint-disable-line -- mutable for tracking
+    lastSentSessionId = null;
     constructor(config) {
         this.config = config;
     }

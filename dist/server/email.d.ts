@@ -4,8 +4,8 @@
  * Implements the Channel interface for multi-channel support.
  * Uses Gmail by default (smtp.gmail.com / imap.gmail.com).
  */
-import type { Result, HookEvent } from '../shared/types.js';
 import type { Channel, ChannelNotification, ChannelStatus, ResponseCallback } from '../shared/channel.js';
+import type { Result, HookEvent } from '../shared/types.js';
 /**
  * Configuration for Email client
  */

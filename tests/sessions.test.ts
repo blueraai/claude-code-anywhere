@@ -57,9 +57,9 @@ describe('SessionManager', () => {
   describe('storeResponse', () => {
     it('throws when storing response for non-existent session', () => {
       // CLAUDE.md: fail early and fast - throw on unexpected state
-      expect(() =>
-        sessionManager.storeResponse('nonexistent', 'response', '+1234567890')
-      ).toThrow('Session nonexistent does not exist');
+      expect(() => sessionManager.storeResponse('nonexistent', 'response', '+1234567890')).toThrow(
+        'Session nonexistent does not exist'
+      );
     });
 
     it('stores response for existing session', () => {

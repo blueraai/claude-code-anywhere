@@ -5,15 +5,21 @@
  * Uses Gmail by default (smtp.gmail.com / imap.gmail.com).
  */
 
-import nodemailer from 'nodemailer';
 import { ImapFlow } from 'imapflow';
-
-type NodemailerTransporter = ReturnType<typeof nodemailer.createTransport>;
-import type { Result, HookEvent, ParsedSMS } from '../shared/types.js';
-import type { Channel, ChannelNotification, ChannelResponse, ChannelStatus, ResponseCallback } from '../shared/channel.js';
+import nodemailer from 'nodemailer';
+import { sessionManager } from './sessions.js';
 import { MAX_EMAIL_BODY_LENGTH } from '../shared/constants.js';
 import { createLogger } from '../shared/logger.js';
-import { sessionManager } from './sessions.js';
+import type {
+  Channel,
+  ChannelNotification,
+  ChannelResponse,
+  ChannelStatus,
+  ResponseCallback,
+} from '../shared/channel.js';
+import type { Result, HookEvent, ParsedSMS } from '../shared/types.js';
+
+type NodemailerTransporter = ReturnType<typeof nodemailer.createTransport>;
 
 const log = createLogger('email');
 
@@ -230,7 +236,10 @@ export class EmailClient implements Channel {
    * Send a confirmation
    */
   async sendConfirmation(sessionId: string): Promise<Result<string, string>> {
-    return this.sendEmail(`✓ Response received for CC-${sessionId}`, 'Your response has been processed.');
+    return this.sendEmail(
+      `✓ Response received for CC-${sessionId}`,
+      'Your response has been processed.'
+    );
   }
 
   /**
@@ -321,7 +330,11 @@ export class EmailClient implements Channel {
 
           // Parse the message - use In-Reply-To header for matching
           const parsed = this.parseEmail(subject, body, inReplyTo);
-          log.info('Parsed email', { sessionId: parsed.sessionId, response: parsed.response, matchedBy: inReplyTo !== undefined ? 'inReplyTo' : 'subject' });
+          log.info('Parsed email', {
+            sessionId: parsed.sessionId,
+            response: parsed.response,
+            matchedBy: inReplyTo !== undefined ? 'inReplyTo' : 'subject',
+          });
 
           // Convert to ChannelResponse and call callback
           if (parsed.sessionId !== null) {
@@ -471,13 +484,15 @@ export class EmailClient implements Channel {
    * Decode quoted-printable encoded text
    */
   private decodeQuotedPrintable(text: string): string {
-    return text
-      // Handle soft line breaks (=\n)
-      .replace(/=\r?\n/g, '')
-      // Decode =XX hex sequences
-      .replace(/=([0-9A-Fa-f]{2})/g, (_, hex: string) => {
-        return String.fromCharCode(parseInt(hex, 16));
-      });
+    return (
+      text
+        // Handle soft line breaks (=\n)
+        .replace(/=\r?\n/g, '')
+        // Decode =XX hex sequences
+        .replace(/=([0-9A-Fa-f]{2})/g, (_, hex: string) => {
+          return String.fromCharCode(parseInt(hex, 16));
+        })
+    );
   }
 
   /**

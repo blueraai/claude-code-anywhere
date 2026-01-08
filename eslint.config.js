@@ -1,6 +1,8 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import eslintComments from 'eslint-plugin-eslint-comments';
+import importPlugin from 'eslint-plugin-import';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -12,10 +14,19 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+      },
+    },
   },
   {
     plugins: {
       'eslint-comments': eslintComments,
+      import: importPlugin,
     },
     rules: {
       // Type safety
@@ -56,9 +67,22 @@ export default tseslint.config(
 
       // Require explanations for ESLint disable comments
       'eslint-comments/require-description': 'warn',
+
+      // Import organization
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', ['parent', 'sibling'], 'index', 'type'],
+          'newlines-between': 'never',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
+      'import/first': 'error',
+      'import/no-duplicates': 'error',
     },
   },
   {
     ignores: ['dist/**', 'node_modules/**', '*.config.js', '*.config.ts', '**/*.test.ts', 'tests/**/*.ts'],
   },
+  eslintConfigPrettier,
 );

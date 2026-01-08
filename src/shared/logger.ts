@@ -55,7 +55,12 @@ function ensureLogsDir(): void {
 /**
  * Format a log message
  */
-function formatMessage(level: LogLevel, component: string, message: string, data?: unknown): string {
+function formatMessage(
+  level: LogLevel,
+  component: string,
+  message: string,
+  data?: unknown
+): string {
   const timestamp = getTimestamp();
   const dataStr = data !== undefined ? `\n${JSON.stringify(data, null, 2)}` : '';
   return `[${timestamp}] [${level}] [${component}] ${message}${dataStr}`;
@@ -91,16 +96,19 @@ interface Logger {
   info: (message: string, data?: unknown) => void;
   warn: (message: string, data?: unknown) => void;
   error: (message: string, data?: unknown) => void;
-  email: (action: string, details: {
-    from?: string;
-    to?: string;
-    subject?: string;
-    body?: string;
-    messageId?: string;
-    inReplyTo?: string;
-    uid?: number;
-    error?: string;
-  }) => void;
+  email: (
+    action: string,
+    details: {
+      from?: string;
+      to?: string;
+      subject?: string;
+      body?: string;
+      messageId?: string;
+      inReplyTo?: string;
+      uid?: number;
+      error?: string;
+    }
+  ) => void;
 }
 
 /**
@@ -120,16 +128,19 @@ export function createLogger(component: string): Logger {
     error: (message: string, data?: unknown): void => {
       writeLog('ERROR', component, message, data);
     },
-    email: (action: string, details: {
-      from?: string;
-      to?: string;
-      subject?: string;
-      body?: string;
-      messageId?: string;
-      inReplyTo?: string;
-      uid?: number;
-      error?: string;
-    }): void => {
+    email: (
+      action: string,
+      details: {
+        from?: string;
+        to?: string;
+        subject?: string;
+        body?: string;
+        messageId?: string;
+        inReplyTo?: string;
+        uid?: number;
+        error?: string;
+      }
+    ): void => {
       writeLog('INFO', component, `EMAIL ${action}`, details);
     },
   };

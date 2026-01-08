@@ -4,8 +4,8 @@
  * Implements the Channel interface for multi-channel support.
  * Uses polling (getUpdates) for receiving messages.
  */
-import type { Result, TelegramConfig } from '../shared/types.js';
 import type { Channel, ChannelNotification, ChannelStatus, ResponseCallback } from '../shared/channel.js';
+import type { Result, TelegramConfig } from '../shared/types.js';
 /**
  * Telegram client for sending and receiving messages
  * Implements the Channel interface for multi-channel support

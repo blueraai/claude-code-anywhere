@@ -5,9 +5,14 @@
  * Aggregates responses from any channel.
  */
 
-import type { Channel, ChannelNotification, ChannelStatus, ResponseCallback } from '../shared/channel.js';
-import type { Result } from '../shared/types.js';
 import { createLogger } from '../shared/logger.js';
+import type {
+  Channel,
+  ChannelNotification,
+  ChannelStatus,
+  ResponseCallback,
+} from '../shared/channel.js';
+import type { Result } from '../shared/types.js';
 
 const log = createLogger('channels');
 
@@ -86,7 +91,10 @@ export class ChannelManager {
       results.set(name, result);
       if (result.success) {
         successCount++;
-        log.info(`Sent notification via ${name}`, { sessionId: notification.sessionId, messageId: result.data });
+        log.info(`Sent notification via ${name}`, {
+          sessionId: notification.sessionId,
+          messageId: result.data,
+        });
       } else {
         failureCount++;
         log.error(`Failed to send via ${name}: ${result.error}`);

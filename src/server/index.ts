@@ -5,13 +5,8 @@
  */
 
 import { createServer } from 'http';
-import type { IncomingMessage, ServerResponse, Server } from 'http';
-import { loadEmailConfig, loadTelegramConfig } from '../shared/config.js';
-import { sessionManager } from './sessions.js';
-import { EmailClient } from './email.js';
-import { TelegramClient } from './telegram.js';
 import { ChannelManager } from './channels.js';
-import type { ChannelResponse } from '../shared/channel.js';
+import { EmailClient } from './email.js';
 import {
   handleSendEmail,
   handleRegisterSession,
@@ -25,7 +20,12 @@ import {
   handleRoot,
   type RouteContext,
 } from './routes.js';
+import { sessionManager } from './sessions.js';
+import { TelegramClient } from './telegram.js';
+import { loadEmailConfig, loadTelegramConfig } from '../shared/config.js';
 import { createLogger } from '../shared/logger.js';
+import type { ChannelResponse } from '../shared/channel.js';
+import type { IncomingMessage, ServerResponse, Server } from 'http';
 
 const log = createLogger('server');
 
@@ -115,10 +115,15 @@ export class BridgeServer {
     if (!sessionManager.hasSession(sessionId)) {
       const activeIds = sessionManager.getActiveSessionIds();
       if (activeIds.length === 0) {
-        await this.emailClient.sendEmail('Session Expired', `Session CC-${sessionId} expired. No active sessions.`);
+        await this.emailClient.sendEmail(
+          'Session Expired',
+          `Session CC-${sessionId} expired. No active sessions.`
+        );
       } else {
         const idList = activeIds.map((id) => `CC-${id}`).join(', ');
-        await this.emailClient.sendErrorResponse(`Session CC-${sessionId} expired or not found. Active: ${idList}`);
+        await this.emailClient.sendErrorResponse(
+          `Session CC-${sessionId} expired or not found. Active: ${idList}`
+        );
       }
       return;
     }

@@ -3,8 +3,8 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import type { GlobalState, HookEvent } from '../shared/types.js';
 import { getStateFilePath, getStateDir } from '../shared/config.js';
+import type { GlobalState, HookEvent } from '../shared/types.js';
 
 const DEFAULT_STATE: GlobalState = {
   enabled: true,

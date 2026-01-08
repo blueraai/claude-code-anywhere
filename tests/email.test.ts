@@ -411,7 +411,8 @@ describe('EmailClient - stripMimeContent', () => {
   });
 
   it('removes Content-* headers', () => {
-    const body = '--boundary123456789\nContent-Type: text/plain\nContent-Transfer-Encoding: 7bit\n\nActual content';
+    const body =
+      '--boundary123456789\nContent-Type: text/plain\nContent-Transfer-Encoding: 7bit\n\nActual content';
     const result = client.stripMimeContent(body);
     expect(result).not.toContain('Content-Type');
     expect(result).not.toContain('Content-Transfer-Encoding');
@@ -419,7 +420,8 @@ describe('EmailClient - stripMimeContent', () => {
   });
 
   it('skips HTML parts entirely', () => {
-    const body = '--boundary123456789\nContent-Type: text/html\n\n<html><body>HTML content</body></html>\n--boundary123456789\nContent-Type: text/plain\n\nPlain text';
+    const body =
+      '--boundary123456789\nContent-Type: text/html\n\n<html><body>HTML content</body></html>\n--boundary123456789\nContent-Type: text/plain\n\nPlain text';
     const result = client.stripMimeContent(body);
     expect(result).not.toContain('<html>');
     expect(result).not.toContain('HTML content');
@@ -525,7 +527,9 @@ describe('EmailClient - initialize error handling', () => {
 
     const client = new EmailClient(validConfig);
 
-    await expect(client.initialize()).rejects.toThrow('Failed to initialize email client: Invalid SMTP config');
+    await expect(client.initialize()).rejects.toThrow(
+      'Failed to initialize email client: Invalid SMTP config'
+    );
     expect(client.getStatus().error).toBe('Invalid SMTP config');
   });
 
@@ -538,7 +542,9 @@ describe('EmailClient - initialize error handling', () => {
 
     const client = new EmailClient(validConfig);
 
-    await expect(client.initialize()).rejects.toThrow('Failed to initialize email client: SMTP auth failed');
+    await expect(client.initialize()).rejects.toThrow(
+      'Failed to initialize email client: SMTP auth failed'
+    );
     expect(client.getStatus().error).toBe('SMTP auth failed');
   });
 });
@@ -561,7 +567,9 @@ describe('EmailClient - error handling with non-Error objects', () => {
 
     const client = new EmailClient(validConfig);
 
-    await expect(client.initialize()).rejects.toThrow('Failed to initialize email client: Unknown error');
+    await expect(client.initialize()).rejects.toThrow(
+      'Failed to initialize email client: Unknown error'
+    );
   });
 
   it('handles non-Error throws in sendEmail', async () => {

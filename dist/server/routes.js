@@ -4,7 +4,12 @@
 import { sessionManager } from './sessions.js';
 import { stateManager } from './state.js';
 import packageJson from '../../package.json' with { type: 'json' };
-const VALID_HOOK_EVENTS = new Set(['Notification', 'Stop', 'PreToolUse', 'UserPromptSubmit']);
+const VALID_HOOK_EVENTS = new Set([
+    'Notification',
+    'Stop',
+    'PreToolUse',
+    'UserPromptSubmit',
+]);
 /**
  * Type guard for HookEvent
  */

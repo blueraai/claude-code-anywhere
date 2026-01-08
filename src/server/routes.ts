@@ -2,14 +2,19 @@
  * HTTP API routes for the notification bridge server
  */
 
-import type { IncomingMessage, ServerResponse } from 'http';
-import type { ServerStatus, HookEvent } from '../shared/types.js';
 import { sessionManager } from './sessions.js';
 import { stateManager } from './state.js';
-import type { ChannelManager } from './channels.js';
 import packageJson from '../../package.json' with { type: 'json' };
+import type { ChannelManager } from './channels.js';
+import type { ServerStatus, HookEvent } from '../shared/types.js';
+import type { IncomingMessage, ServerResponse } from 'http';
 
-const VALID_HOOK_EVENTS = new Set<string>(['Notification', 'Stop', 'PreToolUse', 'UserPromptSubmit']);
+const VALID_HOOK_EVENTS = new Set<string>([
+  'Notification',
+  'Stop',
+  'PreToolUse',
+  'UserPromptSubmit',
+]);
 
 /**
  * Type guard for HookEvent

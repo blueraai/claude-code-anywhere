@@ -1,8 +1,8 @@
 /**
  * HTTP API routes for the notification bridge server
  */
-import type { IncomingMessage, ServerResponse } from 'http';
 import type { ChannelManager } from './channels.js';
+import type { IncomingMessage, ServerResponse } from 'http';
 /**
  * Route handler context
  */

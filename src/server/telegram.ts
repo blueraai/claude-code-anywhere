@@ -6,11 +6,21 @@
  */
 
 import axios from 'axios';
-import type { AxiosInstance } from 'axios';
-import type { Result, TelegramConfig, HookEvent } from '../shared/types.js';
-import type { Channel, ChannelNotification, ChannelResponse, ChannelStatus, ResponseCallback } from '../shared/channel.js';
-import { TELEGRAM_API_BASE_URL, TELEGRAM_POLL_INTERVAL_MS, TELEGRAM_POLL_TIMEOUT_SECONDS } from '../shared/constants.js';
+import {
+  TELEGRAM_API_BASE_URL,
+  TELEGRAM_POLL_INTERVAL_MS,
+  TELEGRAM_POLL_TIMEOUT_SECONDS,
+} from '../shared/constants.js';
 import { createLogger } from '../shared/logger.js';
+import type {
+  Channel,
+  ChannelNotification,
+  ChannelResponse,
+  ChannelStatus,
+  ResponseCallback,
+} from '../shared/channel.js';
+import type { Result, TelegramConfig, HookEvent } from '../shared/types.js';
+import type { AxiosInstance } from 'axios';
 
 const log = createLogger('telegram');
 
@@ -134,7 +144,7 @@ export class TelegramClient implements Channel {
   private lastError: string | null = null;
   private isPolling: boolean = false;
   private readonly sentMessageIds: Map<number, string> = new Map(); // messageId -> sessionId
-  private lastSentSessionId: string | null = null; // eslint-disable-line -- mutable for tracking
+  private lastSentSessionId: string | null = null;
 
   constructor(config: TelegramConfig) {
     this.config = config;
@@ -181,7 +191,8 @@ export class TelegramClient implements Channel {
 
     // Verify the bot token by calling getMe
     try {
-      const response = await this.client.get<TelegramAPIResponse<{ id: number; username: string }>>('/getMe');
+      const response =
+        await this.client.get<TelegramAPIResponse<{ id: number; username: string }>>('/getMe');
       if (!response.data.ok) {
         throw new Error(response.data.description ?? 'Unknown error from Telegram API');
       }
@@ -203,14 +214,21 @@ export class TelegramClient implements Channel {
       return { success: false, error: 'Telegram client not initialized' };
     }
 
-    const text = formatTelegramMessage(notification.sessionId, notification.event, notification.message);
+    const text = formatTelegramMessage(
+      notification.sessionId,
+      notification.event,
+      notification.message
+    );
 
     try {
-      const response = await this.client.post<TelegramAPIResponse<TelegramMessage>>('/sendMessage', {
-        chat_id: this.config.chatId,
-        text,
-        parse_mode: 'MarkdownV2',
-      });
+      const response = await this.client.post<TelegramAPIResponse<TelegramMessage>>(
+        '/sendMessage',
+        {
+          chat_id: this.config.chatId,
+          text,
+          parse_mode: 'MarkdownV2',
+        }
+      );
 
       if (!response.data.ok || !response.data.result) {
         const errorMsg = response.data.description ?? 'Unknown error';

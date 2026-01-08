@@ -331,7 +331,10 @@ describe('handleSendEmail', () => {
     const ctx = createMockContext();
 
     const promise = handleSendEmail(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'InvalidEvent', message: 'test' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'InvalidEvent', message: 'test' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(400);
@@ -365,7 +368,10 @@ describe('handleSendEmail', () => {
     const ctx = createMockContext();
 
     const promise = handleSendEmail(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(200);
@@ -385,7 +391,10 @@ describe('handleSendEmail', () => {
     const ctx = createMockContext();
 
     const promise = handleSendEmail(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(200);
@@ -411,7 +420,10 @@ describe('handleSendEmail', () => {
     });
 
     const promise = handleSendEmail(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test message' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test message' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(200);
@@ -438,7 +450,10 @@ describe('handleSendEmail', () => {
     });
 
     const promise = handleSendEmail(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test message' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test message' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(500);
@@ -541,7 +556,10 @@ describe('handleRegisterSession', () => {
     const ctx = createMockContext();
 
     const promise = handleRegisterSession(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(200);
@@ -565,14 +583,21 @@ describe('handleRegisterSession', () => {
     });
 
     const promise = handleRegisterSession(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(200);
     const body = JSON.parse(res._body) as { registered: boolean; channels: number };
     expect(body.registered).toBe(true);
     expect(body.channels).toBe(1);
-    expect(sessionManager.registerSession).toHaveBeenCalledWith('test-123', 'Notification', 'test prompt');
+    expect(sessionManager.registerSession).toHaveBeenCalledWith(
+      'test-123',
+      'Notification',
+      'test prompt'
+    );
     expect(sessionManager.storeMessageId).toHaveBeenCalledWith('test-123', 'msg-id-456');
   });
 
@@ -591,7 +616,10 @@ describe('handleRegisterSession', () => {
     });
 
     const promise = handleRegisterSession(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: 'test prompt' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(500);
@@ -964,7 +992,10 @@ describe('handleSendEmail edge cases', () => {
     const ctx = createMockContext();
 
     const promise = handleSendEmail(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: '' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: '' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(400);
@@ -984,7 +1015,10 @@ describe('handleSendEmail edge cases', () => {
     const ctx = createMockContext();
 
     const promise = handleSendEmail(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', message: 'test' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(200);
@@ -1032,7 +1066,10 @@ describe('handleRegisterSession edge cases', () => {
     const ctx = createMockContext();
 
     const promise = handleRegisterSession(req, res, ctx);
-    emitRequestBody(req, JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: '' }));
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'test-123', event: 'Notification', prompt: '' })
+    );
     await promise;
 
     expect(res._statusCode).toBe(400);

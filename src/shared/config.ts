@@ -2,7 +2,6 @@
  * Configuration loading from environment variables
  */
 
-import type { AppConfig, EmailConfig, TelegramConfig, Result } from './types.js';
 import {
   DEFAULT_BRIDGE_PORT,
   DEFAULT_SMTP_HOST,
@@ -11,6 +10,7 @@ import {
   DEFAULT_IMAP_PORT,
   DEFAULT_EMAIL_POLL_INTERVAL_MS,
 } from './constants.js';
+import type { AppConfig, EmailConfig, TelegramConfig, Result } from './types.js';
 
 /**
  * Validate email format
@@ -64,7 +64,8 @@ export function loadEmailConfig(): Result<EmailConfig, string> {
 
   // SMTP settings with defaults
   const smtpHostEnv = process.env['SMTP_HOST'];
-  const smtpHost = smtpHostEnv !== undefined && smtpHostEnv !== '' ? smtpHostEnv : DEFAULT_SMTP_HOST;
+  const smtpHost =
+    smtpHostEnv !== undefined && smtpHostEnv !== '' ? smtpHostEnv : DEFAULT_SMTP_HOST;
 
   const smtpPortEnv = process.env['SMTP_PORT'];
   const smtpPort =
@@ -79,7 +80,8 @@ export function loadEmailConfig(): Result<EmailConfig, string> {
 
   // IMAP settings with defaults
   const imapHostEnv = process.env['IMAP_HOST'];
-  const imapHost = imapHostEnv !== undefined && imapHostEnv !== '' ? imapHostEnv : DEFAULT_IMAP_HOST;
+  const imapHost =
+    imapHostEnv !== undefined && imapHostEnv !== '' ? imapHostEnv : DEFAULT_IMAP_HOST;
 
   const imapPortEnv = process.env['IMAP_PORT'];
   const imapPort =
