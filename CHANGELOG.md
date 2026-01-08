@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.1](https://github.com/blueraai/claude-code-anywhere/compare/v0.3.0...v0.3.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* add ResponseSync to VALID_HOOK_EVENTS in routes ([f40ca13](https://github.com/blueraai/claude-code-anywhere/commit/f40ca13869ab6e3dcb0e9480066348e0948e26d5))
+* auto-migrate v0.2.x state files missing ResponseSync ([4778dd1](https://github.com/blueraai/claude-code-anywhere/commit/4778dd1b653aae3dde5e2ee9288f3eb3f4dce834))
+
 ## [0.3.0](https://github.com/blueraai/claude-code-anywhere/compare/v0.2.4...v0.3.0) (2026-01-08)
 
 
