@@ -734,3 +734,202 @@ describe('EmailClient - polling error propagation (fail-fast)', () => {
     client.dispose();
   });
 });
+
+describe('EmailClient - email deletion after processing', () => {
+  // Helper to wait for async operations to complete
+  const flushPromises = (): Promise<void> =>
+    new Promise((resolve) => {
+      setTimeout(resolve, 50);
+    });
+
+  let ImapFlowMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(async () => {
+    // Get a fresh reference to the mock
+    const imapflowMod = await import('imapflow');
+    ImapFlowMock = vi.mocked(imapflowMod.ImapFlow);
+    ImapFlowMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('deletes email after successful processing', async () => {
+    const messageDeleteMock = vi.fn().mockResolvedValue(undefined);
+
+    // Create mock message
+    const mockMessages = [
+      {
+        uid: 123,
+        envelope: {
+          messageId: '<test-msg-1@example.com>',
+          subject: '[CC-abc123] Test notification',
+          from: [{ address: 'user@example.com' }],
+          inReplyTo: '<original@example.com>',
+        },
+        bodyParts: new Map([['text', Buffer.from('My reply')]]),
+      },
+    ];
+
+    // Create async generator for fetch - must return fresh generator each call
+    const createMockFetch = (): AsyncGenerator<(typeof mockMessages)[0]> => {
+      return (async function* (): AsyncGenerator<(typeof mockMessages)[0]> {
+        for (const msg of mockMessages) {
+          yield msg;
+        }
+      })();
+    };
+
+    // Setup ImapFlow mock instance
+    const mockClient = {
+      connect: vi.fn().mockResolvedValue(undefined),
+      on: vi.fn(),
+      getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+      fetch: vi.fn(() => createMockFetch()),
+      messageDelete: messageDeleteMock,
+      logout: vi.fn().mockResolvedValue(undefined),
+    };
+
+    // Use function (not arrow) since ImapFlow is called with `new`
+    ImapFlowMock.mockImplementation(function () {
+      return mockClient;
+    });
+
+    // Create client and set up callback
+    const client = new EmailClient(validConfig);
+    await client.initialize();
+    client.startPolling(vi.fn());
+
+    // Wait for async email check to complete
+    await flushPromises();
+
+    // Verify messageDelete was called with correct uid
+    expect(messageDeleteMock).toHaveBeenCalledTimes(1);
+    expect(messageDeleteMock).toHaveBeenCalledWith({ uid: 123 });
+
+    client.dispose();
+  });
+
+  it('deletes multiple emails after processing each', async () => {
+    const messageDeleteMock = vi.fn().mockResolvedValue(undefined);
+
+    // Create mock messages
+    const mockMessages = [
+      {
+        uid: 100,
+        envelope: {
+          messageId: '<msg-1@example.com>',
+          subject: '[CC-session1] First',
+          from: [{ address: 'user@example.com' }],
+        },
+        bodyParts: new Map([['text', Buffer.from('Reply 1')]]),
+      },
+      {
+        uid: 200,
+        envelope: {
+          messageId: '<msg-2@example.com>',
+          subject: '[CC-session2] Second',
+          from: [{ address: 'user@example.com' }],
+        },
+        bodyParts: new Map([['text', Buffer.from('Reply 2')]]),
+      },
+      {
+        uid: 300,
+        envelope: {
+          messageId: '<msg-3@example.com>',
+          subject: '[CC-session3] Third',
+          from: [{ address: 'user@example.com' }],
+        },
+        bodyParts: new Map([['text', Buffer.from('Reply 3')]]),
+      },
+    ];
+
+    const createMockFetch = (): AsyncGenerator<(typeof mockMessages)[0]> => {
+      return (async function* (): AsyncGenerator<(typeof mockMessages)[0]> {
+        for (const msg of mockMessages) {
+          yield msg;
+        }
+      })();
+    };
+
+    const mockClient = {
+      connect: vi.fn().mockResolvedValue(undefined),
+      on: vi.fn(),
+      getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+      fetch: vi.fn(() => createMockFetch()),
+      messageDelete: messageDeleteMock,
+      logout: vi.fn().mockResolvedValue(undefined),
+    };
+
+    // Use function (not arrow) since ImapFlow is called with `new`
+    ImapFlowMock.mockImplementation(function () {
+      return mockClient;
+    });
+
+    const client = new EmailClient(validConfig);
+    await client.initialize();
+    client.startPolling(vi.fn());
+
+    await flushPromises();
+
+    // Verify messageDelete was called for each message
+    expect(messageDeleteMock).toHaveBeenCalledTimes(3);
+    expect(messageDeleteMock).toHaveBeenNthCalledWith(1, { uid: 100 });
+    expect(messageDeleteMock).toHaveBeenNthCalledWith(2, { uid: 200 });
+    expect(messageDeleteMock).toHaveBeenNthCalledWith(3, { uid: 300 });
+
+    client.dispose();
+  });
+
+  it('deletes email even when session ID not found in subject', async () => {
+    const messageDeleteMock = vi.fn().mockResolvedValue(undefined);
+
+    // Message with invalid session ID format - should still be deleted
+    const mockMessages = [
+      {
+        uid: 456,
+        envelope: {
+          messageId: '<orphan@example.com>',
+          subject: 'Random subject without session ID',
+          from: [{ address: 'user@example.com' }],
+        },
+        bodyParts: new Map([['text', Buffer.from('Some reply')]]),
+      },
+    ];
+
+    const createMockFetch = (): AsyncGenerator<(typeof mockMessages)[0]> => {
+      return (async function* (): AsyncGenerator<(typeof mockMessages)[0]> {
+        for (const msg of mockMessages) {
+          yield msg;
+        }
+      })();
+    };
+
+    const mockClient = {
+      connect: vi.fn().mockResolvedValue(undefined),
+      on: vi.fn(),
+      getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+      fetch: vi.fn(() => createMockFetch()),
+      messageDelete: messageDeleteMock,
+      logout: vi.fn().mockResolvedValue(undefined),
+    };
+
+    // Use function (not arrow) since ImapFlow is called with `new`
+    ImapFlowMock.mockImplementation(function () {
+      return mockClient;
+    });
+
+    const client = new EmailClient(validConfig);
+    await client.initialize();
+    client.startPolling(vi.fn());
+
+    await flushPromises();
+
+    // Email should still be deleted even though session wasn't found
+    expect(messageDeleteMock).toHaveBeenCalledTimes(1);
+    expect(messageDeleteMock).toHaveBeenCalledWith({ uid: 456 });
+
+    client.dispose();
+  });
+});
