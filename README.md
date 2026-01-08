@@ -388,9 +388,22 @@ cp .claude/settings.local.json.example .claude/settings.local.json
 ```
 
 This provides:
-- Auto-validation after code edits (PostToolUse hook runs lint/typecheck)
-- Pre-approved common commands
-- Desktop notifications
+
+**Pre-approved Commands:**
+- `bun run build/lint/test/typecheck` - No permission prompts for common dev commands
+- `bun install` - Dependency installation
+
+**PostToolUse Hook:**
+- Runs `.claude/hooks/post-edit-check.sh` after every file edit
+- Catches lint and type errors immediately (fail-fast)
+- Prevents committing broken code
+
+**Notification Hook:**
+- macOS desktop notifications when Claude needs input
+- Plays "Glass" sound for permission prompts, idle prompts, etc.
+- Lets you work on other things while Claude runs
+
+> **Note:** The `.claude/settings.local.json` file is git-ignored. Each developer maintains their own copy with their preferred permissions.
 
 ### Dogfooding
 
