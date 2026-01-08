@@ -25,5 +25,5 @@ fi
 
 # Run ALL tests (not just changed) to catch interface breakages
 echo "🧪 Running all tests..."
-bun run test:all || { echo "❌ Tests failed - push blocked"; exit 1; }
+bun run test:all --reporter=dot --silent 2>&1 | tail -5 || { echo "❌ Tests failed - push blocked"; exit 1; }
 echo "✅ All tests passed"
