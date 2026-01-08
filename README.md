@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 
-> **Stay connected to your Claude Code sessions from anywhere.** Get email notifications when tasks complete, approve operations remotely, and respond to prompts from any device.
+> **Stay connected to your Claude Code sessions from anywhere.** Get notifications via Email or Telegram when tasks complete, approve operations remotely, and respond to prompts from any device.
 
 ## Table of Contents
 
@@ -49,8 +49,8 @@ When Claude Code needs your input--a question, approval, or notification--you sh
 
 ## Features
 
-- **Email Notifications** -- Get alerts when tasks complete or errors occur
-- **Interactive Prompts** -- Respond to Claude's questions via email reply
+- **Multi-Channel** -- Receive notifications via Email, Telegram, or both
+- **Interactive Prompts** -- Respond to Claude's questions from any device
 - **Approval Requests** -- Approve or deny destructive operations remotely
 - **Multi-Session** -- Track multiple Claude Code sessions independently
 - **Easy Toggle** -- Enable/disable with `/notify on` or `/notify off`
@@ -216,6 +216,8 @@ Simply reply to the email. The session ID is extracted from the subject line aut
 
 ### Environment Variables
 
+**Email (Required)**
+
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `EMAIL_USER` | Yes | - | Email address for Claude (sending account) |
@@ -226,6 +228,24 @@ Simply reply to the email. The session ID is extracted from the subject line aut
 | `IMAP_HOST` | No | imap.gmail.com | IMAP server hostname |
 | `IMAP_PORT` | No | 993 | IMAP server port |
 | `EMAIL_POLL_INTERVAL_MS` | No | 5000 | How often to check for replies (ms) |
+
+**Telegram (Optional)**
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `TELEGRAM_BOT_TOKEN` | No | - | Bot token from @BotFather |
+| `TELEGRAM_CHAT_ID` | No | - | Your personal chat ID |
+
+To enable Telegram:
+1. Message [@BotFather](https://t.me/BotFather) on Telegram and create a new bot
+2. Copy the bot token (looks like `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
+3. Message [@userinfobot](https://t.me/userinfobot) to get your chat ID
+4. Set both `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in your environment
+
+**Server**
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
 | `BRIDGE_PORT` | No | 3847 | Bridge server port |
 | `BRIDGE_URL` | No | http://localhost:3847 | Bridge server URL |
 
@@ -272,9 +292,9 @@ Settings are stored in `~/.claude/claude-code-anywhere/state.json`:
 Server logs are written to both console and file:
 - **Location:** `logs/MM-DD-YY.log` in the plugin directory
 - **Format:** `[HH:MM:SS.mmm] [LEVEL] [component] message`
-- **Components:** `email`, `server`, `sessions`
+- **Components:** `email`, `telegram`, `channels`, `server`, `sessions`
 
-Logs include full email details (from, to, subject, body, messageId) for debugging.
+Logs include full message details for debugging.
 
 ---
 
