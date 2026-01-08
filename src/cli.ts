@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Claude Code Anywhere CLI - Command line interface for the email bridge
- *
- * Uses Gmail SMTP/IMAP for sending/receiving messages.
+ * Claude Code Anywhere CLI - Command line interface for the notification bridge
  */
 
 import 'dotenv/config';
+import packageJson from '../package.json' with { type: 'json' };
 import { Command } from 'commander';
 import { createBridgeServer } from './server/index.js';
 import { loadEmailConfig, loadAppConfig } from './shared/config.js';
@@ -35,7 +34,7 @@ function isStatusResponse(value: unknown): value is {
 program
   .name('claude-code-anywhere')
   .description('Email notifications and bidirectional communication for Claude Code')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 /**
  * Server command - Start the email bridge server
@@ -109,9 +108,8 @@ program
         process.exit(1);
       }
 
-      console.log('Email Bridge Server Status:');
+      console.log('Bridge Server Status:');
       console.log(`  Status: ${rawStatus.status}`);
-      console.log(`  Backend: Gmail SMTP/IMAP`);
       console.log(`  Active Sessions: ${String(rawStatus.activeSessions)}`);
       console.log(`  Pending Responses: ${String(rawStatus.pendingResponses)}`);
       console.log(`  Uptime: ${String(rawStatus.uptime)} seconds`);
@@ -207,9 +205,7 @@ program
     const state = loadState();
     const configResult = loadAppConfig();
 
-    console.log('Claude Code Email Bridge Configuration:');
-    console.log('');
-    console.log('Backend: Gmail SMTP/IMAP');
+    console.log('Claude Code Anywhere Configuration:');
     console.log('');
     console.log('Global State:');
     console.log(`  Enabled: ${state.enabled ? 'Yes' : 'No'}`);

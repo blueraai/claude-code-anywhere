@@ -832,12 +832,10 @@ describe('handleRoot', () => {
     const body = JSON.parse(res._body) as {
       name: string;
       version: string;
-      backend: string;
       endpoints: string[];
     };
-    expect(body.name).toBe('Claude Code Email Bridge');
-    expect(body.version).toBe('0.1.0');
-    expect(body.backend).toBe('Gmail SMTP/IMAP');
+    expect(body.name).toBe('Claude Code Anywhere');
+    expect(typeof body.version).toBe('string');
     expect(Array.isArray(body.endpoints)).toBe(true);
     expect(body.endpoints.length).toBeGreaterThan(0);
   });

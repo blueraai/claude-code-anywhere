@@ -56,11 +56,6 @@ export declare class EmailClient implements Channel {
      */
     initialize(): Promise<void>;
     /**
-     * Initialize the email client (sync version for backward compatibility)
-     * @deprecated Use async initialize() instead
-     */
-    initializeSync(): Result<void, string>;
-    /**
      * Send a notification through this channel (Channel interface)
      * Returns message ID on success for tracking replies
      */

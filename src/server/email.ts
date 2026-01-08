@@ -165,37 +165,6 @@ export class EmailClient implements Channel {
   }
 
   /**
-   * Initialize the email client (sync version for backward compatibility)
-   * @deprecated Use async initialize() instead
-   */
-  initializeSync(): Result<void, string> {
-    this.validateConfig();
-
-    try {
-      this.transporter = nodemailer.createTransport({
-        host: this.config.smtpHost,
-        port: this.config.smtpPort,
-        secure: this.config.smtpPort === 465,
-        auth: {
-          user: this.config.user,
-          pass: this.config.pass,
-        },
-      });
-
-      log.info(`Initialized SMTP transport for ${this.config.user}`);
-      this.lastError = null;
-      return { success: true, data: undefined };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      this.lastError = message;
-      return {
-        success: false,
-        error: `Failed to initialize email client: ${message}`,
-      };
-    }
-  }
-
-  /**
    * Send a notification through this channel (Channel interface)
    * Returns message ID on success for tracking replies
    */
@@ -521,6 +490,7 @@ export class EmailClient implements Channel {
       log.info('Stopped polling for emails');
     }
     this.messageCallback = null;
+    this.processedMessageIds.clear();
   }
 
   /**

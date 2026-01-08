@@ -388,6 +388,8 @@ export class TelegramClient implements Channel {
       log.info('Stopped polling for Telegram messages');
     }
     this.messageCallback = null;
+    this.sentMessageIds.clear();
+    this.lastSentSessionId = null;
   }
 
   /**
@@ -396,6 +398,5 @@ export class TelegramClient implements Channel {
   dispose(): void {
     this.stopPolling();
     this.client = null;
-    this.sentMessageIds.clear();
   }
 }

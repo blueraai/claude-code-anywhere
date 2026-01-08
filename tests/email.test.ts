@@ -478,50 +478,6 @@ describe('EmailClient - decodeQuotedPrintable', () => {
   });
 });
 
-describe('EmailClient - initializeSync', () => {
-  it('creates SMTP transporter and returns success', () => {
-    const client = new EmailClient(validConfig);
-    const result = client.initializeSync();
-
-    expect(result.success).toBe(true);
-    expect(client.getStatus().connected).toBe(true);
-  });
-
-  it('throws when config is invalid', () => {
-    const config = { ...validConfig, user: '' };
-    const client = new EmailClient(config);
-
-    expect(() => client.initializeSync()).toThrow('EMAIL_USER is required');
-  });
-
-  it('returns error result when createTransport throws', async () => {
-    const nodemailerMock = await import('nodemailer');
-    vi.mocked(nodemailerMock.default.createTransport).mockImplementationOnce(() => {
-      throw new Error('Sync SMTP error');
-    });
-
-    const client = new EmailClient(validConfig);
-    const result = client.initializeSync();
-
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error).toContain('Sync SMTP error');
-    }
-  });
-
-  it('sets lastError when createTransport throws', async () => {
-    const nodemailerMock = await import('nodemailer');
-    vi.mocked(nodemailerMock.default.createTransport).mockImplementationOnce(() => {
-      throw new Error('Sync config error');
-    });
-
-    const client = new EmailClient(validConfig);
-    client.initializeSync();
-
-    expect(client.getStatus().error).toBe('Sync config error');
-  });
-});
-
 describe('EmailClient - sendEmail error handling', () => {
   it('returns error when sendMail throws', async () => {
     // Create a mock that throws
@@ -606,21 +562,6 @@ describe('EmailClient - error handling with non-Error objects', () => {
     const client = new EmailClient(validConfig);
 
     await expect(client.initialize()).rejects.toThrow('Failed to initialize email client: Unknown error');
-  });
-
-  it('handles non-Error throws in initializeSync', async () => {
-    const nodemailerMock = await import('nodemailer');
-    vi.mocked(nodemailerMock.default.createTransport).mockImplementationOnce(() => {
-      throw { code: 'ECONNREFUSED' };
-    });
-
-    const client = new EmailClient(validConfig);
-    const result = client.initializeSync();
-
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error).toContain('Unknown error');
-    }
   });
 
   it('handles non-Error throws in sendEmail', async () => {

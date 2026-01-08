@@ -1,7 +1,5 @@
 /**
- * Claude Code Anywhere - Email notifications and bidirectional communication for Claude Code
- *
- * Uses Gmail SMTP/IMAP for sending/receiving messages.
+ * Claude Code Anywhere - Email and Telegram notifications for Claude Code
  */
 
 // Re-export types

@@ -1,8 +1,9 @@
 /**
- * HTTP API routes for the email bridge server
+ * HTTP API routes for the notification bridge server
  */
 import { sessionManager } from './sessions.js';
 import { stateManager } from './state.js';
+import packageJson from '../../package.json' with { type: 'json' };
 const VALID_HOOK_EVENTS = new Set(['Notification', 'Stop', 'PreToolUse', 'UserPromptSubmit']);
 /**
  * Type guard for HookEvent
@@ -277,9 +278,8 @@ export function handleStatus(_req, res, ctx) {
  */
 export function handleRoot(_req, res) {
     sendJSON(res, 200, {
-        name: 'Claude Code Email Bridge',
-        version: '0.1.0',
-        backend: 'Gmail SMTP/IMAP',
+        name: 'Claude Code Anywhere',
+        version: packageJson.version,
         endpoints: [
             'POST /api/send - Send email for hook event',
             'POST /api/session - Register session waiting for response',

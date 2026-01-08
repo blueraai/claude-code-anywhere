@@ -303,6 +303,8 @@ export class TelegramClient {
             log.info('Stopped polling for Telegram messages');
         }
         this.messageCallback = null;
+        this.sentMessageIds.clear();
+        this.lastSentSessionId = null;
     }
     /**
      * Clean up resources (Channel interface)
@@ -310,7 +312,6 @@ export class TelegramClient {
     dispose() {
         this.stopPolling();
         this.client = null;
-        this.sentMessageIds.clear();
     }
 }
 //# sourceMappingURL=telegram.js.map

@@ -1,7 +1,5 @@
 /**
- * Claude Code Anywhere - Email notifications and bidirectional communication for Claude Code
- *
- * Uses Gmail SMTP/IMAP for sending/receiving messages.
+ * Claude Code Anywhere - Email and Telegram notifications for Claude Code
  */
 export type { HookEvent, Session, PendingResponse, EmailResponse, GlobalState, ServerStatus, EmailConfig, AppConfig, Result, SendEmailRequest, RegisterSessionRequest, ParsedSMS, } from './shared/types.js';
 export { loadEmailConfig, loadAppConfig, getStateDir, getStateFilePath } from './shared/config.js';

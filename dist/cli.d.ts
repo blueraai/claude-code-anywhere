@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 /**
- * Claude Code Anywhere CLI - Command line interface for the email bridge
- *
- * Uses Gmail SMTP/IMAP for sending/receiving messages.
+ * Claude Code Anywhere CLI - Command line interface for the notification bridge
  */
 import 'dotenv/config';
 //# sourceMappingURL=cli.d.ts.map
