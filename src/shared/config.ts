@@ -2,7 +2,7 @@
  * Configuration loading from environment variables
  */
 
-import type { AppConfig, EmailConfig, Result } from './types.js';
+import type { AppConfig, EmailConfig, TelegramConfig, Result } from './types.js';
 import {
   DEFAULT_BRIDGE_PORT,
   DEFAULT_SMTP_HOST,
@@ -117,6 +117,37 @@ export function loadEmailConfig(): Result<EmailConfig, string> {
       imapHost,
       imapPort,
       pollIntervalMs,
+    },
+  };
+}
+
+/**
+ * Load Telegram configuration from environment variables
+ * Returns success: false if TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing
+ */
+export function loadTelegramConfig(): Result<TelegramConfig, string> {
+  const botToken = process.env['TELEGRAM_BOT_TOKEN'];
+  const chatId = process.env['TELEGRAM_CHAT_ID'];
+
+  if (botToken === undefined || botToken === '') {
+    return {
+      success: false,
+      error: 'Missing required environment variable: TELEGRAM_BOT_TOKEN',
+    };
+  }
+
+  if (chatId === undefined || chatId === '') {
+    return {
+      success: false,
+      error: 'Missing required environment variable: TELEGRAM_CHAT_ID',
+    };
+  }
+
+  return {
+    success: true,
+    data: {
+      botToken,
+      chatId,
     },
   };
 }

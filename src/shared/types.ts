@@ -71,6 +71,14 @@ export interface EmailConfig {
 }
 
 /**
+ * Telegram configuration
+ */
+export interface TelegramConfig {
+  botToken: string;
+  chatId: string;
+}
+
+/**
  * Application configuration
  */
 export interface AppConfig {
