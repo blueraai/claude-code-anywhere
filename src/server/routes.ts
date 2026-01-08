@@ -162,12 +162,19 @@ export async function handleSendEmail(
   }
 
   // Send to all channels
-  const result = await ctx.channelManager.sendToAll({
-    sessionId,
-    event,
-    title: `[CC-${sessionId.slice(0, 6)}] ${event}`,
-    message,
-  });
+  let result;
+  try {
+    result = await ctx.channelManager.sendToAll({
+      sessionId,
+      event,
+      title: `[CC-${sessionId.slice(0, 6)}] ${event}`,
+      message,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    sendError(res, 500, message);
+    return;
+  }
 
   if (result.successCount > 0) {
     // Store first successful message ID for reply matching
@@ -240,12 +247,19 @@ export async function handleRegisterSession(
   sessionManager.registerSession(sessionId, event, prompt);
 
   // Send to all channels
-  const result = await ctx.channelManager.sendToAll({
-    sessionId,
-    event,
-    title: `[CC-${sessionId.slice(0, 6)}] ${event}`,
-    message: prompt,
-  });
+  let result;
+  try {
+    result = await ctx.channelManager.sendToAll({
+      sessionId,
+      event,
+      title: `[CC-${sessionId.slice(0, 6)}] ${event}`,
+      message: prompt,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    sendError(res, 500, errorMessage);
+    return;
+  }
 
   if (result.successCount > 0) {
     // Store first successful message ID for reply matching

@@ -367,12 +367,14 @@ export class TelegramClient implements Channel {
           }
         }
 
-        // Try to extract [CC-xxx] from message text
+        // Try to extract [CC-xxx] from message text and strip the prefix
+        let responseText = update.message.text;
         if (sessionId === null) {
-          const match = update.message.text.match(/\[CC-([a-f0-9]+)\]/i);
-          sessionId = match?.[1] ?? null;
-          if (sessionId !== null) {
-            log.debug(`Matched session ${sessionId} via message text`);
+          const match = update.message.text.match(/^\[CC-([a-f0-9]+)\]\s*/i);
+          if (match !== null) {
+            sessionId = match[1] ?? null;
+            responseText = update.message.text.substring(match[0].length).trim();
+            log.debug(`Matched session ${sessionId ?? 'unknown'} via message text`);
           }
         }
 
@@ -398,7 +400,7 @@ export class TelegramClient implements Channel {
 
         const channelResponse: ChannelResponse = {
           sessionId,
-          response: update.message.text.trim(),
+          response: responseText,
           from: update.message.from?.username ?? String(update.message.from?.id ?? 'unknown'),
           timestamp: update.message.date * 1000,
           channel: this.name,

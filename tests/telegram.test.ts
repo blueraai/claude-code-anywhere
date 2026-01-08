@@ -321,7 +321,7 @@ describe('TelegramClient', () => {
       client.stopPolling();
     });
 
-    it('matches session via [CC-xxx] in text', async () => {
+    it('matches session via [CC-xxx] in text and strips prefix from response', async () => {
       mockAxiosInstance.get
         .mockResolvedValueOnce({
           data: { ok: true, result: { id: 123, username: 'testbot' } },
@@ -357,7 +357,51 @@ describe('TelegramClient', () => {
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
           sessionId: 'def456',
-          response: '[CC-def456] This is my response',
+          response: 'This is my response',
+          channel: 'telegram',
+        })
+      );
+
+      client.stopPolling();
+    });
+
+    it('strips [CC-xxx] prefix even with no space after bracket', async () => {
+      mockAxiosInstance.get
+        .mockResolvedValueOnce({
+          data: { ok: true, result: { id: 123, username: 'testbot' } },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            ok: true,
+            result: [
+              {
+                update_id: 1,
+                message: {
+                  message_id: 200,
+                  chat: { id: 123456789, type: 'private' },
+                  from: { id: 999, username: 'user' },
+                  text: '[CC-abc123]response without space',
+                  date: 1700000000,
+                },
+              },
+            ],
+          },
+        });
+
+      const client = new TelegramClient(validConfig);
+      await client.initialize();
+
+      const callback = vi.fn();
+      client.startPolling(callback);
+
+      await vi.waitFor(() => {
+        expect(callback).toHaveBeenCalled();
+      });
+
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: 'abc123',
+          response: 'response without space',
           channel: 'telegram',
         })
       );

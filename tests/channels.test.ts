@@ -160,12 +160,22 @@ describe('ChannelManager', () => {
       expect(result.results.get('telegram')?.success).toBe(true);
     });
 
-    it('returns empty results when no channels registered', async () => {
-      const result = await manager.sendToAll(notification);
+    it('throws when no enabled channels exist', async () => {
+      await expect(manager.sendToAll(notification)).rejects.toThrow(
+        'No enabled channels to send to'
+      );
+    });
 
-      expect(result.successCount).toBe(0);
-      expect(result.failureCount).toBe(0);
-      expect(result.results.size).toBe(0);
+    it('throws when all channels are disabled', async () => {
+      const email = createMockChannel('email', false);
+      const telegram = createMockChannel('telegram', false);
+
+      manager.register(email);
+      manager.register(telegram);
+
+      await expect(manager.sendToAll(notification)).rejects.toThrow(
+        'No enabled channels to send to'
+      );
     });
   });
 

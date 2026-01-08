@@ -47,8 +47,7 @@ export class ChannelManager {
         let failureCount = 0;
         const enabledChannels = this.getEnabledChannels();
         if (enabledChannels.length === 0) {
-            log.warn('No enabled channels to send to');
-            return { results, successCount, failureCount };
+            throw new Error('No enabled channels to send to');
         }
         // Send to all channels in parallel
         const sendPromises = enabledChannels.map(async (channel) => {
