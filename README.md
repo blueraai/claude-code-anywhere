@@ -387,6 +387,8 @@ Install global notification support for all Claude sessions.
 
 After installation, restart your shell. All future `claude` sessions will automatically have notifications enabled.
 
+**macOS Note:** You'll see a system notification: *"Software from 'Jarred Sumner' can run in the background."* This is expected — Jarred Sumner is the creator of [Bun](https://bun.sh), the JavaScript runtime we use. Allow it in System Settings → Login Items to keep the daemon running.
+
 </details>
 
 ---
