@@ -14,6 +14,7 @@ export interface Session {
     lastActivity: number;
     enabled: boolean;
     pendingResponse: PendingResponse | null;
+    pendingMessageId?: string;
 }
 /**
  * A pending response waiting for email reply

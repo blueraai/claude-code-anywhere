@@ -19,6 +19,8 @@ Thumbs.db
 .env.*.local
 
 # Logs
+logs/*
+!logs/.gitkeep
 *.log
 npm-debug.log*
 bun-debug.log*

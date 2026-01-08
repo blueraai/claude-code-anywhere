@@ -7,6 +7,9 @@
 import nodemailer from 'nodemailer';
 import { ImapFlow } from 'imapflow';
 import { MAX_EMAIL_BODY_LENGTH } from '../shared/constants.js';
+import { createLogger } from '../shared/logger.js';
+import { sessionManager } from './sessions.js';
+const log = createLogger('email');
 /**
  * Format an email subject with session ID prefix
  */
@@ -78,7 +81,7 @@ export class EmailClient {
                     pass: this.config.pass,
                 },
             });
-            console.log(`[email] Initialized SMTP transport for ${this.config.user}`);
+            log.info(`Initialized SMTP transport for ${this.config.user}`);
             return { success: true, data: undefined };
         }
         catch (error) {
@@ -103,7 +106,12 @@ export class EmailClient {
                 subject,
                 text: body,
             });
-            console.log(`[email] Sent: "${subject}" to ${this.config.recipient}`);
+            log.email('SENT', {
+                to: this.config.recipient,
+                subject,
+                body,
+                messageId: info.messageId,
+            });
             return { success: true, data: info.messageId };
         }
         catch (error) {
@@ -137,11 +145,11 @@ export class EmailClient {
     startPolling(callback) {
         this.messageCallback = callback;
         if (this.pollInterval !== null) {
-            console.log('[email] Already polling for emails');
+            log.warn('Already polling for emails');
             return;
         }
         const intervalMs = this.config.pollIntervalMs;
-        console.log(`[email] Starting to poll for emails every ${String(intervalMs)}ms`);
+        log.info(`Starting to poll for emails every ${String(intervalMs)}ms`);
         // Do initial check
         void this.checkForNewEmails();
         this.pollInterval = setInterval(() => {
@@ -154,8 +162,9 @@ export class EmailClient {
     async checkForNewEmails() {
         if (this.messageCallback === null)
             return;
+        let client = null;
         try {
-            const client = new ImapFlow({
+            client = new ImapFlow({
                 host: this.config.imapHost,
                 port: this.config.imapPort,
                 secure: this.config.imapPort === 993,
@@ -164,6 +173,10 @@ export class EmailClient {
                     pass: this.config.pass,
                 },
                 logger: false,
+            });
+            // Handle error events to prevent unhandled exception crashes
+            client.on('error', (err) => {
+                log.error(`IMAP error: ${err.message}`);
             });
             await client.connect();
             const lock = await client.getMailboxLock('INBOX');
@@ -183,14 +196,26 @@ export class EmailClient {
                         this.processedMessageIds.add(messageId);
                     }
                     const subject = msg.envelope.subject ?? '';
+                    const fromAddresses = msg.envelope.from ?? [];
+                    const fromEmail = fromAddresses[0]?.address ?? 'unknown';
+                    const inReplyTo = msg.envelope.inReplyTo;
                     const bodyPart = msg.bodyParts?.get('text');
                     const body = bodyPart !== undefined ? bodyPart.toString() : '';
-                    console.log(`[email] Received: "${subject}" from ${this.config.recipient}`);
-                    // Parse the message
-                    const parsed = this.parseEmail(subject, body);
+                    log.email('RECEIVED', {
+                        from: fromEmail,
+                        subject,
+                        body,
+                        messageId: messageId ?? 'unknown',
+                        inReplyTo: inReplyTo ?? 'none',
+                        uid: msg.uid,
+                    });
+                    // Parse the message - use In-Reply-To header for matching
+                    const parsed = this.parseEmail(subject, body, inReplyTo);
+                    log.info('Parsed email', { sessionId: parsed.sessionId, response: parsed.response, matchedBy: inReplyTo !== undefined ? 'inReplyTo' : 'subject' });
                     this.messageCallback(parsed);
                     // Delete after processing to avoid re-processing on restart
                     await client.messageDelete({ uid: msg.uid });
+                    log.debug(`Deleted email uid=${String(msg.uid)}`);
                 }
             }
             finally {
@@ -199,18 +224,40 @@ export class EmailClient {
             await client.logout();
         }
         catch (error) {
-            // Ignore polling errors - will retry next interval
-            const msg = error instanceof Error ? error.message : 'Unknown error';
-            console.log(`[email] Poll error (will retry): ${msg}`);
+            // Log polling errors but continue - will retry next interval
+            const errMsg = error instanceof Error ? error.message : 'Unknown error';
+            log.error(`Poll error (will retry): ${errMsg}`);
+            // Try to close the connection if it exists
+            if (client !== null) {
+                try {
+                    await client.logout();
+                }
+                catch {
+                    // Ignore logout errors during cleanup
+                }
+            }
         }
     }
     /**
-     * Parse an email for session ID from subject
+     * Parse an email for session ID using In-Reply-To header or subject fallback
      */
-    parseEmail(subject, body) {
-        // Try to extract session ID from [CC-xxx] prefix in subject
-        const match = subject.match(/\[CC-([a-f0-9]+)\]/i);
-        const sessionId = match?.[1] ?? null;
+    parseEmail(subject, body, inReplyTo) {
+        let sessionId = null;
+        // Primary: Match using In-Reply-To header (RFC 2822)
+        if (inReplyTo !== undefined) {
+            sessionId = sessionManager.findSessionByMessageId(inReplyTo);
+            if (sessionId !== null) {
+                log.debug(`Matched session ${sessionId} via In-Reply-To: ${inReplyTo}`);
+            }
+        }
+        // Fallback: Extract session ID from [CC-xxx] prefix in subject
+        if (sessionId === null) {
+            const match = subject.match(/\[CC-([a-f0-9]+)\]/i);
+            sessionId = match?.[1] ?? null;
+            if (sessionId !== null) {
+                log.debug(`Matched session ${sessionId} via subject line`);
+            }
+        }
         // Extract reply text - remove quoted content
         const replyText = this.extractReplyText(body);
         return {
@@ -300,7 +347,7 @@ export class EmailClient {
         if (this.pollInterval !== null) {
             clearInterval(this.pollInterval);
             this.pollInterval = null;
-            console.log('[email] Stopped polling for emails');
+            log.info('Stopped polling for emails');
         }
         this.messageCallback = null;
     }

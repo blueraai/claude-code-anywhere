@@ -142,6 +142,31 @@ class SessionManager {
         return this.pendingResponses.has(sessionId);
     }
     /**
+     * Store the Message-ID of a sent email for a session
+     * Used for matching replies via In-Reply-To header
+     */
+    storeMessageId(sessionId, messageId) {
+        const session = this.sessions.get(sessionId);
+        if (session === undefined) {
+            throw new Error(`Session ${sessionId} does not exist`);
+        }
+        session.pendingMessageId = messageId;
+        session.lastActivity = Date.now();
+    }
+    /**
+     * Find a session by the Message-ID of the sent email
+     * Used to match incoming replies via In-Reply-To header
+     * @returns sessionId if found, null otherwise
+     */
+    findSessionByMessageId(messageId) {
+        for (const [sessionId, session] of this.sessions) {
+            if (session.pendingMessageId === messageId) {
+                return sessionId;
+            }
+        }
+        return null;
+    }
+    /**
      * Get the count of pending responses
      */
     getPendingResponseCount() {

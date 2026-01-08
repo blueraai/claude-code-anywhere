@@ -118,6 +118,8 @@ export async function handleSendEmail(req, res, ctx) {
     // Send the email
     const result = await ctx.emailClient.sendHookMessage(sessionId, event, message);
     if (result.success) {
+        // Store the Message-ID for In-Reply-To matching
+        sessionManager.storeMessageId(sessionId, result.data);
         sendJSON(res, 200, { sent: true, messageId: result.data });
     }
     else {
@@ -169,6 +171,8 @@ export async function handleRegisterSession(req, res, ctx) {
     // Send the email
     const result = await ctx.emailClient.sendHookMessage(sessionId, event, prompt);
     if (result.success) {
+        // Store the Message-ID for In-Reply-To matching
+        sessionManager.storeMessageId(sessionId, result.data);
         sendJSON(res, 200, { registered: true, messageId: result.data });
     }
     else {

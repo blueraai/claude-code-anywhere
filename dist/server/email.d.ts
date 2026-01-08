@@ -65,7 +65,7 @@ export declare class EmailClient {
      */
     private checkForNewEmails;
     /**
-     * Parse an email for session ID from subject
+     * Parse an email for session ID using In-Reply-To header or subject fallback
      */
     private parseEmail;
     /**

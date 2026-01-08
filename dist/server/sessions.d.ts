@@ -66,6 +66,17 @@ declare class SessionManager {
      */
     hasResponse(sessionId: string): boolean;
     /**
+     * Store the Message-ID of a sent email for a session
+     * Used for matching replies via In-Reply-To header
+     */
+    storeMessageId(sessionId: string, messageId: string): void;
+    /**
+     * Find a session by the Message-ID of the sent email
+     * Used to match incoming replies via In-Reply-To header
+     * @returns sessionId if found, null otherwise
+     */
+    findSessionByMessageId(messageId: string): string | null;
+    /**
      * Get the count of pending responses
      */
     getPendingResponseCount(): number;
