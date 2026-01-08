@@ -512,8 +512,11 @@ Diagnose installation and configuration issues. Especially useful after global i
 | **Server** | | | |
 | `BRIDGE_PORT` | No | 3847 | Bridge server port |
 | `BRIDGE_URL` | No | http://localhost:3847 | Bridge URL |
+| **Logging** | | | |
+| `LOG_MAX_SIZE_MB` | Yes | - | Max log file size before rotation |
+| `LOG_MAX_ROTATED_FILES` | Yes | - | Number of rotated logs to keep |
 
-*Required if using email channel (at least one channel must be configured)
+*Required: At least one channel (Email or Telegram) must be configured. Logging settings are always required.
 
 ### State File
 
