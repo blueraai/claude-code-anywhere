@@ -6,6 +6,7 @@ allowed-tools:
   - Bash(launchctl list * com.claude.notify *)
   - Bash(systemctl --user is-active claude-notify.service *)
   - Bash(test -f ~/.claude-notify/*)
+  - Bash(test -d *)
   - Read(~/.claude-notify/manifest.json)
   - Read(~/.claude-notify/plugins/claude-code-anywhere/.env)
   - Read(~/.claude-notify/plugins/claude-code-anywhere/plugin.json)
@@ -15,23 +16,69 @@ allowed-tools:
 
 Diagnose installation status and configuration of Claude Code Anywhere.
 
+## Installation Modes
+
+First, detect which installation mode is active:
+
+1. **Global Install**: `~/.claude-notify/bin/claude` shim exists
+2. **Plugin Install**: Installed via `claude /plugin add`
+3. **Dogfooding**: Running via `--plugin-dir .` (development mode)
+
+Detection order:
+1. Check if `~/.claude-notify/bin/claude` exists → Global Install
+2. Check if server is running via API → Some mode is active
+3. If server running but no global install → Dogfooding/Plugin mode
+
 ## Diagnostic Checks
 
-Run these diagnostics and report results:
+### 1. Detect Installation Mode
 
-### 1. PATH Shim Check
+```bash
+# Check for global install
+test -f ~/.claude-notify/bin/claude && echo "global" || echo "not-global"
+```
+
+```bash
+# Check server status
+curl -s --max-time 2 http://localhost:3847/api/status 2>/dev/null || echo '{"running": false}'
+```
+
+Based on results:
+- Global install exists → Mode: **Global Install**
+- No global install + server running → Mode: **Dogfooding/Plugin**
+- No global install + server not running → Mode: **Not Installed**
+
+### 2. Mode-Specific Checks
+
+**For Global Install mode:**
+- ✅/❌ Shim is first in PATH
+- ✅/❌ Daemon service running (launchd/systemd)
+- ✅/❌ Plugin files exist
+
+**For Dogfooding/Plugin mode:**
+- ✅ Server running (this is what matters!)
+- ℹ️ "Global install not configured (optional)"
+- ℹ️ "Using plugin via --plugin-dir or /plugin add"
+
+**For Not Installed mode:**
+- ❌ Server not running
+- Suggest: Run `/notify on` or `bash scripts/install.sh`
+
+### 3. Channel Configuration (all modes)
+
+Get channel info from server status API response:
+- Check `channels` array in status response
+- For each channel, show: name, enabled, connected, config
+
+### 4. PATH Shim Check (Global Install only)
 
 ```bash
 which -a claude 2>/dev/null | head -5
 ```
 
-**Expected:** First result should be `~/.claude-notify/bin/claude`
+Only show ❌ if global install exists but shim not first in PATH.
 
-- ✅ if shim is first in PATH
-- ⚠️ if shim exists but not first (real claude will bypass notifications)
-- ❌ if shim not found (notifications won't work for new sessions)
-
-### 2. Service Status
+### 5. Service Status (Global Install only)
 
 **macOS:**
 ```bash
@@ -43,49 +90,16 @@ launchctl list | grep com.claude.notify 2>/dev/null || echo "not found"
 systemctl --user is-active claude-notify.service 2>/dev/null || echo "not found"
 ```
 
-**Or via API:**
-```bash
-curl -s --max-time 2 http://localhost:3847/api/status 2>/dev/null || echo '{"running": false}'
-```
-
-- ✅ if service running
-- ❌ if service not running or not found
-
-### 3. Plugin Installation
-
-```bash
-test -f ~/.claude-notify/plugins/claude-code-anywhere/plugin.json && echo "installed" || echo "not found"
-```
-
-- ✅ if plugin files exist
-- ❌ if plugin not found
-
-### 4. Channel Configuration
-
-Read `~/.claude-notify/plugins/claude-code-anywhere/.env` and check:
-
-- **Email:** Look for `SMTP_HOST`, `SMTP_USER`, `EMAIL_TO`
-- **Telegram:** Look for `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
-
-For each configured channel:
-- ✅ "Email: configured (to: user@example.com)"
-- ✅ "Telegram: configured (chat: 123456)"
-- ⚠️ "Email: partially configured (missing EMAIL_TO)"
-- ❌ "No channels configured"
-
-### 5. Installation Manifest
-
-Read `~/.claude-notify/manifest.json` if it exists:
-- Show version installed
-- Show installation date
-- Show service type
-
 ## Output Format
 
+**Global Install Mode:**
 ```
 ╭─────────────────────────────────────────╮
 │  Claude Code Anywhere - Diagnostics    │
 ╰─────────────────────────────────────────╯
+
+## Installation Mode
+✅ Global Install (all sessions get notifications)
 
 ## PATH Check
 ✅ Shim is first in PATH: ~/.claude-notify/bin/claude
@@ -93,48 +107,77 @@ Read `~/.claude-notify/manifest.json` if it exists:
 
 ## Service Status
 ✅ Daemon running (launchd: com.claude.notify)
-   API: http://localhost:3847
 
-## Plugin Installation
-✅ Plugin installed: v0.3.4
-   Path: ~/.claude-notify/plugins/claude-code-anywhere
+## Server Status
+✅ API responding: http://localhost:3847
+   Uptime: 91 minutes
+   Active sessions: 1
 
 ## Channels
-✅ Email: you@example.com
+✅ Email: sender@gmail.com → you@example.com
+✅ Telegram: Chat ID 123456789
+```
+
+**Dogfooding/Plugin Mode:**
+```
+╭─────────────────────────────────────────╮
+│  Claude Code Anywhere - Diagnostics    │
+╰─────────────────────────────────────────╯
+
+## Installation Mode
+✅ Dogfooding/Plugin Mode (this session only)
+   ℹ️ For all sessions, run: bash scripts/install.sh
+
+## Server Status
+✅ API responding: http://localhost:3847
+   Uptime: 91 minutes
+   Active sessions: 1
+
+## Channels
+✅ Email: sender@gmail.com → you@example.com
 ✅ Telegram: Chat ID 123456789
 
-## Installation Info
-   Installed: 2026-01-08
-   Service: launchd
-
 ---
+All systems operational for this session.
+```
 
-## IDE Notes (if shim not first)
+**Not Running:**
+```
+╭─────────────────────────────────────────╮
+│  Claude Code Anywhere - Diagnostics    │
+╰─────────────────────────────────────────╯
 
-If PATH issues detected:
+## Installation Mode
+❌ Not running
+
+## Server Status
+❌ Server not responding
+
+## Next Steps
+- Start notifications: `/notify on`
+- Or install globally: `bash scripts/install.sh`
+```
+
+## Troubleshooting (Global Install issues only)
+
+| Issue | Fix |
+|-------|-----|
+| Shim not first in PATH | `source ~/.zshrc` or restart terminal |
+| Daemon not running | `launchctl load ~/Library/LaunchAgents/com.claude.notify.plist` |
+| Plugin not found | Re-run: `bash scripts/install.sh` |
+
+## IDE Notes (Global Install only)
+
+If shim not first in PATH:
 
 **VS Code / Cursor:**
-Add to settings.json:
 ```json
 "terminal.integrated.env.osx": {
   "PATH": "${env:HOME}/.claude-notify/bin:${env:PATH}"
 }
 ```
 
-**iTerm2:**
-Should work automatically if shell rc files are configured.
-
 **tmux:**
-May need: `set-option -g default-command "exec $SHELL -l"`
 ```
-
-## Troubleshooting Suggestions
-
-Based on diagnostics, suggest fixes:
-
-| Issue | Fix |
-|-------|-----|
-| Shim not in PATH | `source ~/.zshrc` or restart terminal |
-| Service not running | `launchctl load ~/Library/LaunchAgents/com.claude.notify.plist` |
-| Plugin not found | Re-run installer: `bash scripts/install.sh` |
-| No channels | Edit `~/.claude-notify/plugins/claude-code-anywhere/.env` |
+set-option -g default-command "exec $SHELL -l"
+```
