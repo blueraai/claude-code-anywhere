@@ -4,7 +4,7 @@ argument-hint: on | off | status | install | uninstall
 allowed-tools:
   - Bash(.claude/cpr.sh *)
   - Bash(curl * http://localhost:*/api/*)
-  - Bash(test *)
+  - Bash(test -x ~/.claude-notify/*)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install.sh)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/uninstall.sh)
   - Bash(launchctl *)
