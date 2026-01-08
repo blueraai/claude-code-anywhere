@@ -159,6 +159,8 @@ export async function handleSendEmail(
   const result = await ctx.emailClient.sendHookMessage(sessionId, event, message);
 
   if (result.success) {
+    // Store the Message-ID for In-Reply-To matching
+    sessionManager.storeMessageId(sessionId, result.data);
     sendJSON(res, 200, { sent: true, messageId: result.data });
   } else {
     sendError(res, 500, result.error);
@@ -225,6 +227,8 @@ export async function handleRegisterSession(
   const result = await ctx.emailClient.sendHookMessage(sessionId, event, prompt);
 
   if (result.success) {
+    // Store the Message-ID for In-Reply-To matching
+    sessionManager.storeMessageId(sessionId, result.data);
     sendJSON(res, 200, { registered: true, messageId: result.data });
   } else {
     sendError(res, 500, result.error);

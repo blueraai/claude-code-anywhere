@@ -16,6 +16,7 @@ export interface Session {
   lastActivity: number;
   enabled: boolean;
   pendingResponse: PendingResponse | null;
+  pendingMessageId?: string; // Message-ID of sent email for In-Reply-To matching
 }
 
 /**

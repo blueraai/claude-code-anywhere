@@ -103,4 +103,53 @@ describe('SessionManager', () => {
       expect(session2?.createdAt).toBe(createdAt1);
     });
   });
+
+  describe('storeMessageId', () => {
+    it('throws when storing message ID for non-existent session', () => {
+      expect(() => sessionManager.storeMessageId('nonexistent', '<test@example.com>')).toThrow(
+        'Session nonexistent does not exist'
+      );
+    });
+
+    it('stores message ID for existing session', () => {
+      sessionManager.registerSession('test-session', 'Notification', 'test prompt');
+      sessionManager.storeMessageId('test-session', '<test@example.com>');
+      const session = sessionManager.getSession('test-session');
+      expect(session?.pendingMessageId).toBe('<test@example.com>');
+    });
+  });
+
+  describe('findSessionByMessageId', () => {
+    it('returns null when no sessions exist', () => {
+      const result = sessionManager.findSessionByMessageId('<test@example.com>');
+      expect(result).toBeNull();
+    });
+
+    it('returns null when message ID does not match any session', () => {
+      sessionManager.registerSession('test-session', 'Notification', 'test prompt');
+      sessionManager.storeMessageId('test-session', '<other@example.com>');
+      const result = sessionManager.findSessionByMessageId('<test@example.com>');
+      expect(result).toBeNull();
+    });
+
+    it('returns session ID when message ID matches', () => {
+      sessionManager.registerSession('test-session', 'Notification', 'test prompt');
+      sessionManager.storeMessageId('test-session', '<test@example.com>');
+      const result = sessionManager.findSessionByMessageId('<test@example.com>');
+      expect(result).toBe('test-session');
+    });
+
+    it('finds correct session among multiple sessions', () => {
+      sessionManager.registerSession('session-1', 'Notification', 'prompt 1');
+      sessionManager.registerSession('session-2', 'Notification', 'prompt 2');
+      sessionManager.registerSession('session-3', 'Notification', 'prompt 3');
+      sessionManager.storeMessageId('session-1', '<msg1@example.com>');
+      sessionManager.storeMessageId('session-2', '<msg2@example.com>');
+      sessionManager.storeMessageId('session-3', '<msg3@example.com>');
+
+      expect(sessionManager.findSessionByMessageId('<msg2@example.com>')).toBe('session-2');
+      expect(sessionManager.findSessionByMessageId('<msg1@example.com>')).toBe('session-1');
+      expect(sessionManager.findSessionByMessageId('<msg3@example.com>')).toBe('session-3');
+    });
+  });
 });

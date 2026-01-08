@@ -23,6 +23,9 @@ import {
   handleRoot,
   type RouteContext,
 } from './routes.js';
+import { createLogger } from '../shared/logger.js';
+
+const log = createLogger('server');
 
 const DEFAULT_PORT = 3847;
 
@@ -91,19 +94,20 @@ export class BridgeServer {
 
     const { sessionId, response } = message;
 
-    console.log(`[server] Incoming email: sessionId=${sessionId ?? 'none'}, response="${response}"`);
+    log.info('Incoming email', { sessionId: sessionId ?? 'none', response });
 
     if (sessionId === null) {
       // Can't determine which session
       const activeIds = sessionManager.getActiveSessionIds();
       if (activeIds.length === 0) {
+        log.info('No active sessions, sending notification');
         await this.emailClient.sendEmail('No Active Sessions', 'No active Claude Code sessions.');
       } else if (activeIds.length === 1) {
         // Single session - auto-route the message
         const singleSessionId = activeIds[0];
         if (singleSessionId !== undefined) {
           sessionManager.storeResponse(singleSessionId, response, 'email');
-          console.log(`[server] Response stored for session ${singleSessionId} (auto-routed)`);
+          log.info(`Response stored for session ${singleSessionId} (auto-routed)`);
           await this.emailClient.sendConfirmation(singleSessionId);
         }
       } else {
@@ -129,7 +133,7 @@ export class BridgeServer {
 
     // Store the response
     sessionManager.storeResponse(sessionId, response, 'email');
-    console.log(`[server] Response stored for session ${sessionId}`);
+    log.info(`Response stored for session ${sessionId}`);
     await this.emailClient.sendConfirmation(sessionId);
   }
 
@@ -269,7 +273,7 @@ export class BridgeServer {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Not found' }));
     } catch (error) {
-      console.error('[server] Error handling request:', error);
+      log.error('Error handling request', error);
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Internal server error' }));
     }
@@ -279,12 +283,14 @@ export class BridgeServer {
    * Print server startup banner
    */
   private printBanner(): void {
+    log.info(`Server started on port ${String(this.port)}`);
     console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║           Claude Code Email Bridge Server                      ║
 ╠════════════════════════════════════════════════════════════════╣
 ║  Using Gmail SMTP/IMAP                                         ║
 ║  Listening on port ${this.port.toString().padEnd(40)}║
+║  Logs: logs/MM-DD-YY.log                                       ║
 ║                                                                ║
 ║  Endpoints:                                                    ║
 ║  • POST /api/send        - Send email from hooks               ║
