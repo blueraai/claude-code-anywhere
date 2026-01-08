@@ -435,15 +435,22 @@ bun run build
 
 ### Scripts
 
-| Command | Description |
-|---------|-------------|
-| `bun run build` | Compile TypeScript |
-| `bun run test` | Run tests (watch mode) |
-| `bun run test:run` | Run tests once |
-| `bun run test:coverage` | Run with coverage |
-| `bun run lint` | Run ESLint |
-| `bun run typecheck` | Type check |
-| `bun run precommit` | Full validation |
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `bun run build` | Compile TypeScript to dist/ | After code changes |
+| `bun run dev` | Watch mode compilation | During active development |
+| `bun run test` | Run tests in watch mode | During TDD/development |
+| `bun run test:run` | Run tests once | Quick verification |
+| `bun run test:coverage` | Run tests with coverage | Before committing |
+| `bun run lint` | Run ESLint | Check code style |
+| `bun run typecheck` | TypeScript type checking | Verify type safety |
+| `bun run precommit` | Full validation (lint, types, tests, build) | Runs automatically on commit |
+| `bun run version:patch` | Bump patch version (0.0.x) | Bug fixes |
+| `bun run version:minor` | Bump minor version (0.x.0) | New features |
+| `bun run version:major` | Bump major version (x.0.0) | Breaking changes |
+| `bun run release:patch` | Version bump + tag + push | Release bug fixes |
+| `bun run release:minor` | Version bump + tag + push | Release new features |
+| `bun run release:major` | Version bump + tag + push | Release breaking changes |
 
 ### Project Structure
 
@@ -518,11 +525,21 @@ cd "$PLUGIN_ROOT" && bun run server
 
 ### Releasing
 
-1. Make changes and commit
-2. Bump version: `bun run version:patch`
-3. Commit: `git commit -am "chore: bump version"`
-4. Push: `git push`
-5. GitHub Actions creates the release automatically
+```bash
+# One command does everything: bump, commit, tag, push
+bun run release:patch   # Bug fixes (0.0.x)
+bun run release:minor   # New features (0.x.0)
+bun run release:major   # Breaking changes (x.0.0)
+```
+
+**What happens automatically:**
+1. Version bumped in package.json, plugin.json
+2. CHANGELOG.md generated from commits
+3. Git tag created and pushed
+4. GitHub Actions creates release
+5. Marketplace updated with new version
+
+**Note:** The `dist/` directory must be committed (plugins have no build step during installation).
 
 ---
 
