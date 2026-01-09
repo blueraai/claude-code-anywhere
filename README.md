@@ -476,7 +476,7 @@ Diagnose installation and configuration issues. Especially useful after global i
 
 ## Service Status
 ✅ Daemon running (launchd: com.claude.code-anywhere)
-   API: http://localhost:3847
+   API: http://localhost:<dynamic-port>
 
 ## Plugin Installation
 ✅ Plugin installed: vX.Y.Z
@@ -497,26 +497,26 @@ Diagnose installation and configuration issues. Especially useful after global i
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| **Email** | | | |
-| `EMAIL_USER` | Yes* | - | Sending account (Claude's email) |
-| `EMAIL_PASS` | Yes* | - | App password |
-| `EMAIL_RECIPIENT` | Yes* | - | Your email for notifications |
+| **Email Channel** | | | |
+| `EMAIL_USER` | † | - | Sending account (Claude's email) |
+| `EMAIL_PASS` | † | - | App password |
+| `EMAIL_RECIPIENT` | † | - | Your email for notifications |
 | `SMTP_HOST` | No | smtp.gmail.com | SMTP server |
 | `SMTP_PORT` | No | 587 | SMTP port |
 | `IMAP_HOST` | No | imap.gmail.com | IMAP server |
 | `IMAP_PORT` | No | 993 | IMAP port |
 | `EMAIL_POLL_INTERVAL_MS` | No | 5000 | Reply check interval |
-| **Telegram** | | | |
-| `TELEGRAM_BOT_TOKEN` | No | - | Bot token from @BotFather |
-| `TELEGRAM_CHAT_ID` | No | - | Your chat ID |
+| **Telegram Channel** | | | |
+| `TELEGRAM_BOT_TOKEN` | † | - | Bot token from @BotFather |
+| `TELEGRAM_CHAT_ID` | † | - | Your chat ID |
 | **Server** | | | |
-| `BRIDGE_PORT` | No | 3847 | Bridge server port |
-| `BRIDGE_URL` | No | http://localhost:3847 | Bridge URL |
+| `BRIDGE_PORT` | No | dynamic | Bridge server port (auto-selects available) |
+| `BRIDGE_URL` | No | auto | Bridge URL (derived from port) |
 | **Logging** | | | |
 | `LOG_MAX_SIZE_MB` | Yes | - | Max log file size before rotation |
 | `LOG_MAX_ROTATED_FILES` | Yes | - | Number of rotated logs to keep |
 
-*Required: At least one channel (Email or Telegram) must be configured. Logging settings are always required.
+† At least one channel must be fully configured (all † vars for that channel).
 
 ### State File
 
@@ -607,8 +607,8 @@ On first session, a one-time message explains SESSION-ONLY vs GLOBAL modes. To s
 <details>
 <summary><b>Server Won't Start</b></summary>
 
-1. Check if port is in use: `lsof -i :3847`
-2. Try different port: Set `BRIDGE_PORT=3848` in environment, then `/notify on`
+1. Check if another instance is running: `lsof -i :$(cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/port 2>/dev/null)`
+2. Server auto-selects available ports; check `port` file for actual port
 3. Verify at least one channel is configured
 
 </details>

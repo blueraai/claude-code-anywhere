@@ -16,7 +16,8 @@ See [GitHub #9354](https://github.com/anthropics/claude-code/issues/9354).
 
 All commands use the port from the `port` file (written by server on startup):
 ```bash
-PORT=$(cat "<plugin-root>/port" 2>/dev/null || echo 3847)
+PORT=$(cat "<plugin-root>/port" 2>/dev/null)
+[ -z "$PORT" ] && { echo "Server not started (no port file)"; exit 1; }
 ```
 
 ### Check Status

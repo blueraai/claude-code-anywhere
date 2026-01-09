@@ -39,8 +39,9 @@ test -f ~/.claude-code-anywhere/bin/claude && echo "global" || echo "not-global"
 ```
 
 ```bash
-# Check server status
-curl -s --max-time 2 http://localhost:3847/api/status 2>/dev/null || echo '{"running": false}'
+# Check server status (reads dynamic port - fails if no port file)
+PORT=$(cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/port 2>/dev/null || cat "${CLAUDE_PLUGIN_ROOT:-./}"/port 2>/dev/null)
+[ -n "$PORT" ] && curl -s --max-time 2 http://localhost:$PORT/api/status 2>/dev/null || echo '{"running": false, "error": "no port file"}'
 ```
 
 Based on results:
@@ -109,7 +110,7 @@ systemctl --user is-active claude-code-anywhere.service 2>/dev/null || echo "not
 ✅ Daemon running (launchd: com.claude.code-anywhere)
 
 ## Server Status
-✅ API responding: http://localhost:3847
+✅ API responding: http://localhost:<port>
    Uptime: 91 minutes
    Active sessions: 1
 
@@ -129,7 +130,7 @@ systemctl --user is-active claude-code-anywhere.service 2>/dev/null || echo "not
    ℹ️ For all sessions, run: bash scripts/install.sh
 
 ## Server Status
-✅ API responding: http://localhost:3847
+✅ API responding: http://localhost:<port>
    Uptime: 91 minutes
    Active sessions: 1
 

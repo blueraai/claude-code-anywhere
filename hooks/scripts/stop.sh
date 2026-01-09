@@ -10,7 +10,13 @@ INPUT=$(cat)
 # Get port from port file (written by server on startup)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PORT_FILE="$SCRIPT_DIR/../../port"
-PORT=$(cat "$PORT_FILE" 2>/dev/null || echo "3847")
+PORT=$(cat "$PORT_FILE" 2>/dev/null)
+
+# No port file = server not running
+if [ -z "$PORT" ]; then
+  exit 0
+fi
+
 BRIDGE_URL="http://localhost:$PORT"
 
 # Fast check: is server running? (1 second timeout)

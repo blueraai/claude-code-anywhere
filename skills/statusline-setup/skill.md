@@ -20,8 +20,8 @@ This exact block must be inserted:
 ```bash
 # --- claude-code-anywhere notify status ---
 NOTIFY_STATUS=""
-_NOTIFY_PORT=$(cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/port 2>/dev/null || echo 3847)
-if curl -s --max-time 0.3 "http://localhost:$_NOTIFY_PORT/api/status" >/dev/null 2>&1; then
+_NOTIFY_PORT=$(cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/port 2>/dev/null)
+if [ -n "$_NOTIFY_PORT" ] && curl -s --max-time 0.3 "http://localhost:$_NOTIFY_PORT/api/status" >/dev/null 2>&1; then
     NOTIFY_STATUS=$(printf " │ \033[32mNOTIFY\033[0m")
 else
     NOTIFY_STATUS=$(printf " │ \033[90mnotify\033[0m")

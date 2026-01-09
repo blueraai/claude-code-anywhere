@@ -11,7 +11,7 @@ Send a test notification to verify setup. See @skills/notify-server/skill.md for
 
 ## Server Status
 
-!`curl -s http://localhost:3847/api/status 2>/dev/null || echo '{"running": false}'`
+!`PORT=$(cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/port 2>/dev/null || cat "${CLAUDE_PLUGIN_ROOT:-./}"/port 2>/dev/null) && curl -s http://localhost:$PORT/api/status 2>/dev/null || echo '{"running": false, "error": "no port file - server not started"}'`
 
 ## Workflow
 
