@@ -4,9 +4,9 @@
 # This script runs on every session start. It:
 # 1. Checks if global installation is complete
 # 2. Shows a one-time explanation of SESSION-ONLY vs GLOBAL modes
-# 3. Does NOT auto-install anything - user must explicitly run /notify install
+# 3. Does NOT auto-install anything - user must explicitly run /cca install
 #
-# Opt-out: export CLAUDE_NOTIFY_AUTO=0
+# Opt-out: export CLAUDE_CCA_AUTO=0
 
 set -e
 
@@ -24,7 +24,7 @@ if [ -n "$CLAUDE_SESSION_ID" ]; then
 fi
 
 # Opt-out via environment variable
-if [ "${CLAUDE_NOTIFY_AUTO:-1}" = "0" ]; then
+if [ "${CLAUDE_CCA_AUTO:-1}" = "0" ]; then
   exit 0
 fi
 
@@ -58,12 +58,12 @@ You have two options for how notifications work:
 ┌─────────────────────────────────────────────────────────────────┐
 │  SESSION-ONLY (current default)                                 │
 ├─────────────────────────────────────────────────────────────────┤
-│  • Notifications work in sessions where you run `/notify on`    │
-│  • Each terminal/IDE needs its own `/notify on`                 │
+│  • Notifications work in sessions where you run `/cca on`    │
+│  • Each terminal/IDE needs its own `/cca on`                 │
 │  • Server stops when you close the session                      │
 │                                                                 │
 │  Multiple sessions?                                             │
-│    Only sessions with `/notify on` get notifications.           │
+│    Only sessions with `/cca on` get notifications.           │
 │    Others are silent.                                           │
 │                                                                 │
 │  Good for: Trying it out, occasional use, single-project work   │
@@ -88,8 +88,8 @@ You have two options for how notifications work:
 │    • Adds one line to your .zshrc/.bashrc                       │
 └─────────────────────────────────────────────────────────────────┘
 
-To enable GLOBAL mode:    /notify install
-To suppress this message: export CLAUDE_NOTIFY_AUTO=0
+To enable GLOBAL mode:    /cca install
+To suppress this message: export CLAUDE_CCA_AUTO=0
 
 EOF
 

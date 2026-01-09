@@ -5,7 +5,7 @@ allowed-tools:
   - Bash(rm -f ~/.config/claude-code-anywhere/*)
 ---
 
-# /notify install
+# /cca install
 
 Install global notification support so ALL Claude Code sessions get notifications automatically.
 
@@ -22,7 +22,7 @@ Install global notification support so ALL Claude Code sessions get notification
 
 | Aspect | Before (Session-Only) | After (Global) |
 |--------|----------------------|----------------|
-| New terminal | Need `/notify on` | Just works |
+| New terminal | Need `/cca on` | Just works |
 | Multiple sessions | Each needs setup | All connected |
 | Daemon | Stops with session | Always running |
 | Reboots | Need restart | Auto-starts |
@@ -40,13 +40,13 @@ After running this command, tell the user:
 
 1. **Restart your shell**: `exec $SHELL` or open a new terminal
 2. **Verify**: `which claude` should show `~/.claude-code-anywhere/bin/claude`
-3. **Test**: Start a new Claude session and run `/notify-test`
-4. **Diagnose**: Run `/notify-doctor` if anything seems wrong
+3. **Test**: Start a new Claude session and run `/cca-test`
+4. **Diagnose**: Run `/cca-doctor` if anything seems wrong
 
 ## To Uninstall Later
 
 ```
-/notify uninstall
+/cca uninstall
 ```
 
 Or manually: `bash ~/.claude-code-anywhere/plugins/claude-code-anywhere/scripts/uninstall.sh`

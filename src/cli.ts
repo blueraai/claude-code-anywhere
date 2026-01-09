@@ -56,7 +56,7 @@ program
     if (!configResult.success) {
       console.error(`Error: ${configResult.error}`);
       console.error('\nPlease set the following environment variables:');
-      console.error('  EMAIL_USER=claude-notify@gmail.com');
+      console.error('  EMAIL_USER=claude-cca@gmail.com');
       console.error('  EMAIL_PASS=your-app-password');
       console.error('  EMAIL_RECIPIENT=you@example.com');
       process.exit(1);

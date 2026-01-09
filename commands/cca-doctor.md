@@ -13,7 +13,7 @@ allowed-tools:
   - Read(~/.claude-code-anywhere/plugins/claude-code-anywhere/plugin.json)
 ---
 
-# /notify-doctor
+# /cca-doctor
 
 Diagnose installation status and configuration of Claude Code Anywhere.
 
@@ -63,7 +63,7 @@ Based on results:
 
 **For Not Installed mode:**
 - ❌ Server not running
-- Suggest: Run `/notify on` or `bash scripts/install.sh`
+- Suggest: Run `/cca on` or `bash scripts/install.sh`
 
 ### 3. Channel Configuration (all modes)
 
@@ -155,7 +155,7 @@ All systems operational for this session.
 ❌ Server not responding
 
 ## Next Steps
-- Start notifications: `/notify on`
+- Start notifications: `/cca on`
 - Or install globally: `bash scripts/install.sh`
 ```
 

@@ -16,11 +16,11 @@ allowed-tools:
   - Bash(rm -f ~/.config/claude-code-anywhere/*)
 ---
 
-# /notify
+# /cca
 
 Toggle notifications on/off, check status, or manage global installation.
 
-See @skills/notify-server/skill.md for implementation details.
+See @skills/cca-server/skill.md for implementation details.
 
 **Action requested:** `$1`
 
@@ -43,15 +43,15 @@ See @skills/notify-server/skill.md for implementation details.
 ## Usage
 
 ### Per-Session Commands
-- `/notify on` - Enable notifications for **this session only**
-- `/notify off` - Disable notifications for **this session only** (server keeps running)
-- `/notify status` - Show current status
+- `/cca on` - Enable notifications for **this session only**
+- `/cca off` - Disable notifications for **this session only** (server keeps running)
+- `/cca status` - Show current status
 
 ### Global Commands
-- `/notify on all` - Enable notifications **globally** (all sessions)
-- `/notify off all` - Disable notifications **globally** and stop server
-- `/notify install` - Install global mode (all Claude Code sessions get notifications)
-- `/notify uninstall` - Remove global installation
+- `/cca on all` - Enable notifications **globally** (all sessions)
+- `/cca off all` - Disable notifications **globally** and stop server
+- `/cca install` - Install global mode (all Claude Code sessions get notifications)
+- `/cca uninstall` - Remove global installation
 
 ## Workflow
 
@@ -101,10 +101,10 @@ Report from context above:
   - Any error message
 
 If Installation Status is "SESSION_ONLY", include:
-> "ℹ️ Running in session-only mode. Run `/notify install` for global notifications."
+> "ℹ️ Running in session-only mode. Run `/cca install` for global notifications."
 
 ### `install`
-1. Explain what will be installed (see @commands/notify-install.md)
+1. Explain what will be installed (see @commands/cca-install.md)
 2. Run `${CLAUDE_PLUGIN_ROOT}/scripts/install.sh`
 3. Clear the "shown" marker: `rm -f ~/.config/claude-code-anywhere/shown-install-message`
 4. Report success, remind to restart shell

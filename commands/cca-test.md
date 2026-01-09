@@ -6,9 +6,9 @@ allowed-tools:
   - Bash(cat */port)
 ---
 
-# /notify-test
+# /cca-test
 
-Send a test notification to verify setup. See @skills/notify-server/skill.md for troubleshooting.
+Send a test notification to verify setup. See @skills/cca-server/skill.md for troubleshooting.
 
 ## Server Status
 
@@ -17,7 +17,7 @@ Send a test notification to verify setup. See @skills/notify-server/skill.md for
 ## Workflow
 
 1. Check server status (see context above)
-2. If not running: "Server not running. Use `/notify on` first."
+2. If not running: "Server not running. Use `/cca on` first."
 3. If running: Send test message (see skill)
 4. Report result:
    - Success: "Test sent! Check your inbox/Telegram."

@@ -1,78 +1,112 @@
 ---
 name: statusline-setup
-description: Configure Claude Code status line to show notify status
+description: Configure Claude Code status line to show notification status
 version: 1.0.0
 ---
 
 # Statusline Setup
 
-Intelligently inject notify on/off indicator into any user's statusline.sh.
+Intelligently inject, update, or remove the notification status indicator in the user's statusline.sh.
 
 ## Indicator Format
 
-- `NOTIFY` (green \033[32m) when notifications are active (global enabled OR session enabled)
-- `notify` (dim gray \033[90m) when notifications are inactive for this session
+- `CCA` (green \033[32m) when notifications are active (global enabled OR session enabled)
+- `cca` (dim gray \033[90m) when notifications are inactive for this session
 
 ## Code Block to Inject
+
+Current version: **v1**
 
 This exact block must be inserted:
 
 ```bash
-# --- claude-code-anywhere notify status ---
-NOTIFY_STATUS=""
-_NOTIFY_PORT=$(cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/port 2>/dev/null)
+# --- claude-code-anywhere status --- v1
+CCA_STATUS=""
+_CCA_PORT=$(cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/port 2>/dev/null)
 _SESSION_ID=$(cat ~/.config/claude-code-anywhere/current-session-id 2>/dev/null)
-if [ -n "$_NOTIFY_PORT" ] && [ -n "$_SESSION_ID" ]; then
-    _ACTIVE=$(curl -s --max-time 0.3 "http://localhost:$_NOTIFY_PORT/api/active?sessionId=$_SESSION_ID" 2>/dev/null | grep -o '"active":true')
+if [ -n "$_CCA_PORT" ] && [ -n "$_SESSION_ID" ]; then
+    _ACTIVE=$(curl -s --max-time 0.3 "http://localhost:$_CCA_PORT/api/active?sessionId=$_SESSION_ID" 2>/dev/null | grep -o '"active":true')
     if [ -n "$_ACTIVE" ]; then
-        NOTIFY_STATUS=$(printf " │ \033[32mNOTIFY\033[0m")
+        CCA_STATUS=$(printf " │ \033[32mCCA\033[0m")
     else
-        NOTIFY_STATUS=$(printf " │ \033[90mnotify\033[0m")
+        CCA_STATUS=$(printf " │ \033[90mcca\033[0m")
     fi
 else
-    NOTIFY_STATUS=$(printf " │ \033[90mnotify\033[0m")
+    CCA_STATUS=$(printf " │ \033[90mcca\033[0m")
 fi
-# --- end notify status ---
+# --- end cca status ---
 ```
 
 ## Marker Comments
 
-- Start: `# --- claude-code-anywhere notify status ---`
-- End: `# --- end notify status ---`
+- Start: `# --- claude-code-anywhere status ---` (optionally followed by version like `v1`)
+- End: `# --- end cca status ---`
 
-These markers enable clean identification and removal.
+These markers enable clean identification, update, and removal.
 
-## Intelligent Injection Strategy
+## Version Detection
+
+The start marker may include a version suffix:
+- `# --- claude-code-anywhere status --- v1` (current version)
+- `# --- claude-code-anywhere status ---` (old version, no suffix)
+
+When updating, ALWAYS use the versioned marker (`v1`).
+
+## Idempotent Update Strategy
+
+The `/statusline on` command is idempotent - safe to run multiple times:
+
+### Detection Phase
+
+1. Read entire ~/.claude/statusline.sh
+2. Check for start marker (`# --- claude-code-anywhere status ---`)
+3. Check for end marker (`# --- end cca status ---`)
+4. Check for version in start marker (look for `v1` or similar)
+5. Count `$CCA_STATUS` references in output lines (outside the block)
+
+### Decision Matrix
+
+| Has Block | Version | Output Refs | Action |
+|-----------|---------|-------------|--------|
+| No | - | 0 | Fresh install: inject block + append to outputs |
+| No | - | 1+ | Partial: inject block, don't duplicate outputs |
+| Yes | v1 | 1 | Up to date: report "already up to date" |
+| Yes | v1 | 0 | Repair: add $CCA_STATUS to outputs |
+| Yes | v1 | 2+ | Repair: remove duplicate refs, keep one |
+| Yes | old/none | any | Update: replace block with v1, fix outputs |
+| Partial | - | any | Cleanup: remove partial, fresh install |
+
+### Injection Strategy
 
 Every statusline.sh is different. Analyze the file structure carefully.
 
-### Step 1: Read and Understand
+#### Step 1: Read and Understand
 
-Read the entire ~/.claude/statusline.sh. Identify:
+Identify:
 - Where variables are defined (usually top section)
 - Where logic/computation happens (middle section)
 - Where output happens (printf/echo at the end)
 - The output method used (printf, echo, or other)
 
-### Step 2: Insert the Code Block
+#### Step 2: Insert the Code Block
 
-Insert the notify code block:
+Insert the CCA code block:
 - AFTER all variable definitions and existing logic
 - BEFORE the final output statement(s)
 - Look for patterns like comments preceding output, or the first printf/echo
 
 Use Edit tool to insert the block at the correct location.
 
-### Step 3: Append to Output
+#### Step 3: Append to Output
 
-Find ALL lines that produce output and append `"$NOTIFY_STATUS"`:
+Find ALL lines that produce output and append `$CCA_STATUS`:
 
 **Pattern A - printf with format string:**
 ```bash
 # Before:
 printf "...format..." "$VAR1" "$VAR2"
 # After:
-printf "...format..." "$VAR1" "$VAR2""$NOTIFY_STATUS"
+printf "...format..." "$VAR1" "$VAR2""$CCA_STATUS"
 ```
 
 **Pattern B - echo:**
@@ -80,7 +114,7 @@ printf "...format..." "$VAR1" "$VAR2""$NOTIFY_STATUS"
 # Before:
 echo "$STATUS_LINE"
 # After:
-echo "$STATUS_LINE$NOTIFY_STATUS"
+echo "$STATUS_LINE$CCA_STATUS"
 ```
 
 **Pattern C - Multiple conditional outputs:**
@@ -89,23 +123,41 @@ If the file has if/elif/else with different printf/echo calls, append to EACH ou
 **Pattern D - Here documents or complex output:**
 Find the final output mechanism and append appropriately.
 
-### Step 4: Verify
+#### Step 4: Verify
 
 After edits, the file should:
-1. Contain the marker comments with code block
-2. Have `$NOTIFY_STATUS` appended to all output paths
+1. Contain the marker comments with code block (versioned)
+2. Have exactly ONE `$CCA_STATUS` appended to each output path
+
+## Update Strategy
+
+When updating an existing installation:
+
+### Step 1: Locate Existing Block
+
+Find everything from the start marker through the end marker (inclusive).
+
+### Step 2: Replace Block
+
+Use Edit tool to replace the entire old block with the new versioned block.
+
+### Step 3: Fix Output References
+
+- If 0 refs: append to all output lines
+- If 1 ref: keep as-is
+- If 2+ refs: remove duplicates (keep the first occurrence only)
 
 ## Removal Strategy
 
 ### Step 1: Find and Remove Block
 
-Locate everything from `# --- claude-code-anywhere notify status ---` through `# --- end notify status ---` (inclusive) and delete those lines.
+Locate everything from `# --- claude-code-anywhere status ---` through `# --- end cca status ---` (inclusive) and delete those lines.
 
-### Step 2: Remove $NOTIFY_STATUS References
+### Step 2: Remove $CCA_STATUS References
 
-Find and remove all occurrences of:
-- `"$NOTIFY_STATUS"`
-- `$NOTIFY_STATUS`
+Find and remove ALL occurrences of:
+- `"$CCA_STATUS"`
+- `$CCA_STATUS`
 
 from output lines. Be careful to preserve the rest of the line.
 
@@ -114,8 +166,11 @@ from output lines. Be careful to preserve the rest of the line.
 | Case | Action |
 |------|--------|
 | No statusline.sh | Tell user to set up a statusline first |
-| Already has markers | Report "already enabled" for `on` |
-| No markers found | Report "not currently enabled" for `off` |
+| Already current version | Report "already up to date" |
+| Old version | Update to current version |
+| Partial block | Clean up and fresh install |
+| Missing output ref | Add to output lines |
+| Duplicate output refs | Remove duplicates |
 | Complex conditionals | Append to every output path |
 | Non-printf output | Adapt to echo, cat, or other methods |
 | Multiple output lines | Append to ALL of them |

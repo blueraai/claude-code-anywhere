@@ -1,6 +1,6 @@
 {
   "name": "claude-code-anywhere",
-  "version": "0.4.9",
+  "version": "0.5.0",
   "description": "Email notifications and bidirectional communication for Claude Code",
   "type": "module",
   "scripts": {

@@ -64,7 +64,7 @@ When Claude Code needs your input—a question, approval, or notification—you 
 | **Multi-Channel** | Email, Telegram, or both simultaneously |
 | **Bidirectional** | Send notifications AND receive replies |
 | **Multi-Session** | Track multiple Claude Code sessions independently |
-| **Easy Toggle** | `/notify on`/`off` (per-session) or `/notify on all`/`off all` (global) |
+| **Easy Toggle** | `/cca on`/`off` (per-session) or `/cca on all`/`off all` (global) |
 | **Provider Flexible** | Any SMTP/IMAP email provider |
 | **85% Test Coverage** | Production-ready with comprehensive tests |
 
@@ -137,16 +137,16 @@ On first session, you'll see a one-time message explaining the two notification 
 
 | Mode | Description | Best For |
 |------|-------------|----------|
-| **Session-Only** | Run `/notify on` in each terminal | Trying it out, occasional use |
+| **Session-Only** | Run `/cca on` in each terminal | Trying it out, occasional use |
 | **Global** | All sessions automatically connected | Daily use, multiple projects |
 
 <details>
 <summary><b>What's the difference?</b></summary>
 
 **Session-Only (default):**
-- `/notify on` enables notifications for the current session only
-- `/notify off` disables only the current session (server keeps running for others)
-- Use `/notify on all` or `/notify off all` for global enable/disable
+- `/cca on` enables notifications for the current session only
+- `/cca off` disables only the current session (server keeps running for others)
+- Use `/cca on all` or `/cca off all` for global enable/disable
 - Server can be shared across multiple sessions
 
 **Global:**
@@ -159,7 +159,7 @@ On first session, you'll see a one-time message explaining the two notification 
 
 To enable global mode:
 ```bash
-/notify install
+/cca install
 ```
 
 ### 3. Configure Channels
@@ -170,7 +170,7 @@ Copy `.env.example` to `.env` and configure:
 
 **Email:**
 ```env
-EMAIL_USER=claude-notify@gmail.com    # Dedicated sending account
+EMAIL_USER=claude-cca@gmail.com       # Dedicated sending account
 EMAIL_PASS=xxxx-xxxx-xxxx-xxxx        # App password (not your main password!)
 EMAIL_RECIPIENT=you@example.com       # Where YOU receive notifications
 ```
@@ -186,9 +186,9 @@ You can configure one or both channels.
 ### 4. Enable and Test
 
 ```bash
-/notify on      # Starts server (session-only mode)
-/notify-test    # Sends test message to all configured channels
-/notify-doctor  # Diagnose installation and show current mode
+/cca on      # Starts server (session-only mode)
+/cca-test    # Sends test message to all configured channels
+/cca-doctor  # Diagnose installation and show current mode
 ```
 
 ---
@@ -202,7 +202,7 @@ You can configure one or both channels.
 
 **Step 1: Create a Dedicated Account**
 
-Create a new Gmail account for Claude (e.g., `my-claude-notify@gmail.com`). Using a dedicated account keeps your personal inbox clean and is more secure.
+Create a new Gmail account for Claude (e.g., `my-claude-cca@gmail.com`). Using a dedicated account keeps your personal inbox clean and is more secure.
 
 **Step 2: Enable 2-Factor Authentication**
 
@@ -218,7 +218,7 @@ Create a new Gmail account for Claude (e.g., `my-claude-notify@gmail.com`). Usin
 **Step 4: Add to `.env`**
 
 ```env
-EMAIL_USER=my-claude-notify@gmail.com
+EMAIL_USER=my-claude-cca@gmail.com
 EMAIL_PASS=abcdefghijklmnop  # The app password (no spaces)
 EMAIL_RECIPIENT=your-real-email@example.com
 ```
@@ -263,8 +263,8 @@ IMAP_PORT=993
 
 1. Open Telegram and search for [@BotFather](https://t.me/BotFather)
 2. Send `/newbot` and follow the prompts:
-   - Choose a display name (e.g., "Claude Code Notify")
-   - Choose a username ending in `bot` (e.g., `my_claude_notify_bot`)
+   - Choose a display name (e.g., "Claude Code Anywhere")
+   - Choose a username ending in `bot` (e.g., `my_claude_cca_bot`)
 3. BotFather will reply with your bot token:
    ```
    Use this token to access the HTTP API:
@@ -309,7 +309,7 @@ TELEGRAM_CHAT_ID=123456789
 
 ## Commands
 
-### `/notify status`
+### `/cca status`
 
 Show current server and channel status.
 
@@ -336,11 +336,11 @@ Show current server and channel status.
 
 ---
 
-### `/notify on`
+### `/cca on`
 
 Enable notifications for the **current session only**. Starts the server if not already running.
 
-Use `/notify on all` to enable notifications **globally** (all sessions).
+Use `/cca on all` to enable notifications **globally** (all sessions).
 
 <details>
 <summary><b>Example output</b></summary>
@@ -367,11 +367,11 @@ Notifications enabled for this session.
 
 ---
 
-### `/notify off`
+### `/cca off`
 
 Disable notifications for the **current session only**. The server keeps running for other sessions.
 
-Use `/notify off all` to disable notifications **globally** and stop the server.
+Use `/cca off all` to disable notifications **globally** and stop the server.
 
 <details>
 <summary><b>Example output</b></summary>
@@ -382,7 +382,7 @@ Notifications disabled for this session. Server still running for other sessions
 
 ---
 
-### `/notify install`
+### `/cca install`
 
 Install global notification support for all Claude sessions.
 
@@ -398,13 +398,13 @@ After installation, restart your shell. All future `claude` sessions will automa
 
 **macOS Note:** You'll see a system notification: *"Software from 'Jarred Sumner' can run in the background."* This is expected — Jarred Sumner is the creator of [Bun](https://bun.sh), the JavaScript runtime we use. Allow it in System Settings → Login Items to keep the daemon running.
 
-**Windows:** Global installation is not yet supported. Use session-only mode with `/notify on`.
+**Windows:** Global installation is not yet supported. Use session-only mode with `/cca on`.
 
 </details>
 
 ---
 
-### `/notify uninstall`
+### `/cca uninstall`
 
 Remove global installation and revert to session-only mode.
 
@@ -422,7 +422,7 @@ Your `.env` configuration is preserved as a backup.
 
 ---
 
-### `/notify-test`
+### `/cca-test`
 
 Send a test message to all configured channels.
 
@@ -441,23 +441,23 @@ Check your inbox/Telegram for the test message.
 
 ---
 
-### `/notify-statusline`
+### `/statusline`
 
-Add or remove the notify status indicator from your Claude Code statusline.
+Add or remove the CCA status indicator from your Claude Code statusline.
 
 ```
-/notify-statusline on   # Add indicator to statusline
-/notify-statusline off  # Remove indicator from statusline
+/statusline on   # Add indicator to statusline
+/statusline off  # Remove indicator from statusline
 ```
 
 <details>
 <summary><b>Example output</b></summary>
 
-Notify indicator added to statusline.
+CCA indicator added to statusline.
 
 Your statusline will now show:
-- **NOTIFY** (green) when notifications are active (global enabled OR session enabled)
-- **notify** (dim gray) when notifications are inactive for this session
+- **CCA** (green) when notifications are active (global enabled OR session enabled)
+- **cca** (dim gray) when notifications are inactive for this session
 
 Restart Claude Code or wait for statusline refresh to see the change.
 
@@ -465,7 +465,7 @@ Restart Claude Code or wait for statusline refresh to see the change.
 
 ---
 
-### `/notify-doctor`
+### `/cca-doctor`
 
 Diagnose installation and configuration issues. Especially useful after global installation.
 
@@ -547,7 +547,7 @@ On first session, a one-time message explains SESSION-ONLY vs GLOBAL modes. To s
 
 | Method | How | Persists |
 |--------|-----|----------|
-| Environment variable | `export CLAUDE_NOTIFY_AUTO=0` | Per-shell |
+| Environment variable | `export CLAUDE_CCA_AUTO=0` | Per-shell |
 | Sentinel file | `touch ~/.config/claude-code-anywhere/disable-autoinstall` | Permanent |
 
 ---
@@ -597,7 +597,7 @@ On first session, a one-time message explains SESSION-ONLY vs GLOBAL modes. To s
 1. Did you click "Start" on your bot? (Required!)
 2. Verify bot token and chat ID are correct
 3. Check logs for API errors
-4. Try `/notify-test` to diagnose
+4. Try `/cca-test` to diagnose
 
 </details>
 
@@ -641,7 +641,7 @@ On first session, a one-time message explains SESSION-ONLY vs GLOBAL modes. To s
 
 4. **Run diagnostics:**
    ```bash
-   /notify-doctor
+   /cca-doctor
    ```
 
 </details>
@@ -718,11 +718,11 @@ claude-code-anywhere/
 ├── .claude-plugin/
 │   └── plugin.json           # Plugin manifest (canonical location)
 ├── commands/
-│   ├── notify.md             # /notify command
-│   ├── notify-install.md     # /notify install command
-│   ├── notify-doctor.md      # /notify-doctor diagnostics
-│   ├── notify-test.md        # /notify-test command
-│   └── notify-statusline.md  # /notify-statusline command
+│   ├── cca.md                # /cca command
+│   ├── cca-install.md        # /cca install command
+│   ├── cca-doctor.md         # /cca-doctor diagnostics
+│   ├── cca-test.md           # /cca-test command
+│   └── statusline.md         # /statusline command
 ├── hooks/
 │   ├── hooks.json            # Hook definitions
 │   └── check-install.sh      # SessionStart guidance hook
@@ -761,8 +761,8 @@ Changes take effect on Claude Code restart (no reinstall needed).
 | Mode | Server | Behavior |
 |------|--------|----------|
 | **Develop** | Off | Hooks do nothing, develop normally |
-| **Test** | Running + `/notify on` | Full notification flow |
-| **Pause** | Running + `/notify off` | Hooks check and exit early |
+| **Test** | Running + `/cca on` | Full notification flow |
+| **Pause** | Running + `/cca off` | Hooks check and exit early |
 
 ### Known Limitation: Plugin Root Path
 

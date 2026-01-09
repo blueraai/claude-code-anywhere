@@ -18,7 +18,7 @@ claude --plugin-dir .
 | Directory | Purpose |
 |-----------|---------|
 | `.claude-plugin/` | Plugin manifest (`plugin.json`) |
-| `commands/` | Slash commands (notify.md, notify-test.md, etc.) |
+| `commands/` | Slash commands (cca.md, cca-test.md, etc.) |
 | `hooks/` | Hook definitions and scripts |
 | `skills/` | Skills for complex workflows |
 | `scripts/` | Shell scripts (cpr.sh, server-status.sh, install.sh, uninstall.sh) |

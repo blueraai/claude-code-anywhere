@@ -1,10 +1,10 @@
 ---
-name: notify-server
+name: cca-server
 description: Bridge server management for Claude Code Anywhere notifications
 version: 1.0.0
 ---
 
-# Notify Server Management
+# CCA Server Management
 
 Implementation details for managing the notification bridge server.
 
