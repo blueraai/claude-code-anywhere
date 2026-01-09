@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.6](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.5...v0.4.6) (2026-01-09)
+
+
+### Features
+
+* **notify:** add 'all' argument for per-session vs global control ([3a717cf](https://github.com/blueraai/claude-code-anywhere/commit/3a717cfa48a39e99e49636b43852e44eb979db3c))
+* **telegram:** add inline keyboard buttons for PreToolUse approvals ([6766ce4](https://github.com/blueraai/claude-code-anywhere/commit/6766ce434852807eed8f593826a30139144e47d2))
+
 ## [0.4.5](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.4...v0.4.5) (2026-01-09)
 
 ## [0.4.4](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.3...v0.4.4) (2026-01-09)
