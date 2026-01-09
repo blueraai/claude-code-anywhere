@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.5.1](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.9...v0.5.1) (2026-01-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* **release:** Rename all /notify commands to /cca
+
+- /notify → /cca
+- /notify-test → /cca-test
+- /notify-doctor → /cca-doctor
+- /notify install → /cca install
+- CLAUDE_NOTIFY_AUTO → CLAUDE_CCA_AUTO
+- $NOTIFY_STATUS → $CCA_STATUS
+
+Also includes statusline feature from previous commits.
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+* **release:** 0.5.0 ([469f49c](https://github.com/blueraai/claude-code-anywhere/commit/469f49c519b7efda5a450753cf7d1793d9bd295b))
+
+
+### Features
+
+* **commands:** add /release command for cutting releases ([b06fa57](https://github.com/blueraai/claude-code-anywhere/commit/b06fa575c93b1cb415fafca6c01fb3d79e73d7d1))
+
 ## [0.5.0](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.9...v0.5.0) (2026-01-09)
 
 ## [0.4.10](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.9...v0.4.10) (2026-01-09)
