@@ -7,6 +7,7 @@ allowed-tools:
   - Bash(curl * http://localhost:*/api/*)
   - Bash(test -x ~/.claude-code-anywhere/*)
   - Bash(cat */port)
+  - Bash(cat ~/.config/claude-code-anywhere/current-session-id)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install.sh)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/uninstall.sh)
   - Bash(pkill -f "bun run server" *)
@@ -35,6 +36,10 @@ See @skills/notify-server/skill.md for implementation details.
 
 !`test -x ~/.claude-code-anywhere/bin/claude && echo "GLOBAL" || echo "SESSION_ONLY"`
 
+## Current Session ID
+
+!`cat ~/.config/claude-code-anywhere/current-session-id 2>/dev/null || echo "NO_SESSION"`
+
 ## Usage
 
 ### Per-Session Commands
@@ -53,22 +58,26 @@ See @skills/notify-server/skill.md for implementation details.
 ### `on` (current session only)
 1. Check plugin root (see context above)
 2. If "NOT_CONFIGURED": Run `@skills/bootstrap/skill.md` first, then retry
-3. Check if server running (from Server Status context above)
-4. If not running, start it: `cd "<plugin-root>" && nohup bun run server > /tmp/claude-code-anywhere-server.log 2>&1 &`
-5. Wait for server to be ready (poll `/api/status` until it responds)
-6. Enable this session only: `curl -X POST http://localhost:$PORT/api/session/$CLAUDE_SESSION_ID/enable`
-7. Confirm with channel status (see `status` workflow below for format)
+3. Get session ID from "Current Session ID" context above
+4. If "NO_SESSION": inform user to restart Claude Code (session ID is set on SessionStart)
+5. Check if server running (from Server Status context above)
+6. If not running, start it: `cd "<plugin-root>" && nohup bun run server > /tmp/claude-code-anywhere-server.log 2>&1 &`
+7. Wait for server to be ready (poll `/api/status` until it responds)
+8. Enable this session only: `curl -X POST http://localhost:$PORT/api/session/<session-id>/enable`
+9. Confirm with channel status (see `status` workflow below for format)
 
 ### `on all` (global)
 1. Check plugin root (same as `on` steps 1-2)
-2. Check if server running, start if needed (same as `on` steps 3-5)
+2. Check if server running, start if needed (same as `on` steps 5-7)
 3. Enable globally: `curl -X POST http://localhost:$PORT/api/enable`
 4. Confirm with channel status
 
 ### `off` (current session only)
-1. Disable this session only: `curl -X POST http://localhost:$PORT/api/session/$CLAUDE_SESSION_ID/disable`
-2. **Do NOT stop the server** (other sessions may still be active)
-3. Confirm with status showing session disabled
+1. Get session ID from "Current Session ID" context above
+2. If "NO_SESSION": inform user to restart Claude Code (session ID is set on SessionStart)
+3. Disable this session only: `curl -X POST http://localhost:$PORT/api/session/<session-id>/disable`
+4. **Do NOT stop the server** (other sessions may still be active)
+5. Confirm with status showing session disabled
 
 ### `off all` (global)
 1. Disable globally: `curl -X POST http://localhost:$PORT/api/disable`

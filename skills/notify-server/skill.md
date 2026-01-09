@@ -43,21 +43,38 @@ pkill -f "bun run server" 2>/dev/null || true
 
 ## Global Enable/Disable
 
-### Enable Notifications
+### Enable Notifications Globally
 ```bash
 curl -s -X POST "http://localhost:$PORT/api/enable"
 ```
 
-### Disable Notifications
+### Disable Notifications Globally
 ```bash
 curl -s -X POST "http://localhost:$PORT/api/disable"
 ```
 
+## Session-Specific Enable/Disable
+
+Session ID is persisted by SessionStart hook to `~/.config/claude-code-anywhere/current-session-id`.
+
+### Enable for Current Session Only
+```bash
+SESSION_ID=$(cat ~/.config/claude-code-anywhere/current-session-id)
+curl -s -X POST "http://localhost:$PORT/api/session/$SESSION_ID/enable"
+```
+
+### Disable for Current Session Only
+```bash
+SESSION_ID=$(cat ~/.config/claude-code-anywhere/current-session-id)
+curl -s -X POST "http://localhost:$PORT/api/session/$SESSION_ID/disable"
+```
+
 ## Send Test Message
 ```bash
+SESSION_ID=$(cat ~/.config/claude-code-anywhere/current-session-id)
 curl -s -X POST "http://localhost:$PORT/api/send" \
   -H 'Content-Type: application/json' \
-  -d '{"sessionId": "'$CLAUDE_SESSION_ID'", "event": "Notification", "message": "Test message from Claude Code. Your notification setup is working!"}'
+  -d '{"sessionId": "'"$SESSION_ID"'", "event": "Notification", "message": "Test message from Claude Code. Your notification setup is working!"}'
 ```
 
 ## Logs

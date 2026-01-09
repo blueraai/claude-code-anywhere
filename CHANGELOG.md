@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.8](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.7...v0.4.8) (2026-01-09)
+
 ## [0.4.7](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.6...v0.4.7) (2026-01-09)
 
 ## [0.4.6](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.5...v0.4.6) (2026-01-09)

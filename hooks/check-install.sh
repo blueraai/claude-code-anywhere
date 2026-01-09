@@ -14,8 +14,14 @@ CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude-code-anywhere"
 DISABLE_FILE="$CONFIG_DIR/disable-autoinstall"
 SHOWN_FILE="$CONFIG_DIR/shown-install-message"
 SHIM_PATH="$HOME/.claude-code-anywhere/bin/claude"
+SESSION_FILE="$CONFIG_DIR/current-session-id"
 
 mkdir -p "$CONFIG_DIR"
+
+# Persist session ID for bash commands (CLAUDE_SESSION_ID only available in hooks)
+if [ -n "$CLAUDE_SESSION_ID" ]; then
+  echo "$CLAUDE_SESSION_ID" > "$SESSION_FILE"
+fi
 
 # Opt-out via environment variable
 if [ "${CLAUDE_NOTIFY_AUTO:-1}" = "0" ]; then
