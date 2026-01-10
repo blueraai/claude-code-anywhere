@@ -1,17 +1,12 @@
 #!/bin/bash
 # Server status checker for claude-code-anywhere
+#
+# Uses canonical port file location (~/.config/claude-code-anywhere/port)
+# so status works regardless of which plugin context is running
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Canonical port file location (same as hooks use)
+PORT_FILE="$HOME/.config/claude-code-anywhere/port"
 
-# Get plugin root using cpr.sh
-PLUGIN_ROOT=$("${SCRIPT_DIR}/cpr.sh" 2>/dev/null)
-if [ -z "$PLUGIN_ROOT" ]; then
-    echo '{"running": false, "error": "plugin not found"}'
-    exit 0
-fi
-
-# Read port from plugin's port file
-PORT_FILE="${PLUGIN_ROOT}/port"
 if [ ! -f "$PORT_FILE" ]; then
     echo '{"running": false, "error": "no port file - server not started"}'
     exit 0

@@ -413,4 +413,11 @@ describe('hook scripts use canonical port path (regression tests)', () => {
     expect(content).toContain(CANONICAL_PORT_PATH);
     expect(content).not.toContain(BROKEN_OLD_PATH);
   });
+
+  it('server-status.sh reads from canonical location', () => {
+    const content = readFileSync(join(process.cwd(), 'scripts/server-status.sh'), 'utf-8');
+    expect(content).toContain(CANONICAL_PORT_PATH);
+    // Should NOT use cpr.sh to find plugin root for port file
+    expect(content).not.toContain('${PLUGIN_ROOT}/port');
+  });
 });
