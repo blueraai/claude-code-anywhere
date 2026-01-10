@@ -8,12 +8,24 @@ version: 1.0.0
 
 ## Package.json Scripts
 
+**IMPORTANT:** All release commands MUST be prefixed with `__SKILL__=release` to bypass the manual-release hook.
+
 | Script | What it does |
 |--------|--------------|
-| `bun run release` | **Auto-detect** bump from commits, commit, tag, push |
-| `bun run release:patch` | Force patch (0.0.x) |
-| `bun run release:minor` | Force minor (0.x.0) |
-| `bun run release:major` | Force major (x.0.0) |
+| `__SKILL__=release bun run release` | **Auto-detect** bump from commits, commit, tag, push |
+| `__SKILL__=release bun run release:patch` | Force patch (0.0.x) |
+| `__SKILL__=release bun run release:minor` | Force minor (0.x.0) |
+| `__SKILL__=release bun run release:major` | Force major (x.0.0) |
+
+## Pre-flight Checks
+
+Before running any release command, you MUST:
+
+1. Run `git status` to check for uncommitted changes
+2. If there are uncommitted changes:
+   - Run `/commit` to commit all pending changes
+   - Verify the commit succeeded before proceeding
+3. Only proceed with release after working directory is clean
 
 ## Auto-Detection Rules
 
@@ -39,7 +51,7 @@ After push, three workflows run automatically:
 
 ## Required Workflow
 
-After running `bun run release`, you MUST monitor workflows until ALL complete successfully:
+After running the release command, you MUST monitor workflows until ALL complete successfully:
 
 1. Wait ~20 seconds for workflows to start and complete
 2. Run `gh run list --limit 5` to check all workflow statuses
@@ -75,8 +87,8 @@ gh run view <run-id> --log-failed   # See failure logs
 
 | Issue | Solution |
 |-------|----------|
-| CI failed | Fix issue, `bun run release` again |
+| CI failed | Fix issue, run release again |
 | Tag exists | Delete tag: `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z` |
 | Workflow stuck | `gh run cancel <id>` then re-push |
 | Re-run workflow | `gh run rerun <run-id>` |
-| Wrong version detected | Use explicit `bun run release:patch/minor/major` |
+| Wrong version detected | Use explicit `:patch`, `:minor`, or `:major` variant |

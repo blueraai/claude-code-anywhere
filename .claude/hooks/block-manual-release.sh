@@ -14,6 +14,11 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
 # If no command, allow
 [ -z "$COMMAND" ] && exit 0
 
+# Allow if invoked from /release skill (prefix makes it awkward to type manually)
+if echo "$COMMAND" | grep -qE '^__SKILL__=release '; then
+  exit 0
+fi
+
 # Block patterns for manual release commands
 if echo "$COMMAND" | grep -qE '(bun run (release|version:(patch|minor|major)))|(git tag v[0-9])|(gh release create)'; then
   echo "Manual release commands are blocked. Use /release instead." >&2
