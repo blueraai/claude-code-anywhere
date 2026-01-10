@@ -168,20 +168,35 @@ function escapeMarkdown(text: string): string {
 }
 
 /**
+ * Valid callback actions for inline keyboard buttons
+ */
+type CallbackAction = 'approve' | 'deny' | 'continue' | 'stop' | 'details';
+
+function isValidAction(action: string): action is CallbackAction {
+  return (
+    action === 'approve' ||
+    action === 'deny' ||
+    action === 'continue' ||
+    action === 'stop' ||
+    action === 'details'
+  );
+}
+
+/**
  * Parse callback data from inline keyboard button press.
- * Format: "action:sessionId" where action is "approve" or "deny".
+ * Format: "action:sessionId" where action is approve/deny/continue/stop/details.
  * Session IDs can contain alphanumeric chars, hyphens, and underscores.
  * Throws if format is invalid (fail fast).
  */
-function parseCallbackData(data: string): { action: 'approve' | 'deny'; sessionId: string } {
-  const match = data.match(/^(approve|deny):([a-zA-Z0-9_-]+)$/i);
+function parseCallbackData(data: string): { action: CallbackAction; sessionId: string } {
+  const match = data.match(/^(approve|deny|continue|stop|details):([a-zA-Z0-9_-]+)$/i);
   const actionStr = match?.[1];
   const sessionId = match?.[2];
   if (actionStr === undefined || sessionId === undefined) {
     throw new Error(`Invalid callback data format: ${data}`);
   }
   const actionLower = actionStr.toLowerCase();
-  if (actionLower !== 'approve' && actionLower !== 'deny') {
+  if (!isValidAction(actionLower)) {
     throw new Error(`Invalid callback action: ${actionStr}`);
   }
   return { action: actionLower, sessionId };
@@ -196,6 +211,21 @@ function buildApprovalKeyboard(sessionId: string): InlineKeyboardMarkup {
       [
         { text: '\u2705 YES', callback_data: `approve:${sessionId}` },
         { text: '\u274C NO', callback_data: `deny:${sessionId}` },
+      ],
+    ],
+  };
+}
+
+/**
+ * Build inline keyboard markup for quick responses (Notification/Stop events)
+ */
+function buildQuickResponseKeyboard(sessionId: string): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [
+      [
+        { text: '\u25B6\uFE0F Continue', callback_data: `continue:${sessionId}` },
+        { text: '\u23F9\uFE0F Stop', callback_data: `stop:${sessionId}` },
+        { text: '\uD83D\uDCCB Details', callback_data: `details:${sessionId}` },
       ],
     ],
   };
@@ -309,9 +339,11 @@ export class TelegramClient implements Channel {
       parse_mode: 'MarkdownV2',
     };
 
-    // Add inline keyboard for PreToolUse events (approval buttons)
+    // Add inline keyboard based on event type
     if (notification.event === 'PreToolUse') {
       requestBody.reply_markup = buildApprovalKeyboard(notification.sessionId);
+    } else if (notification.event === 'Notification' || notification.event === 'Stop') {
+      requestBody.reply_markup = buildQuickResponseKeyboard(notification.sessionId);
     }
 
     try {
@@ -537,7 +569,14 @@ export class TelegramClient implements Channel {
     const { action, sessionId } = parseCallbackData(data);
 
     // Map action to response text
-    const responseText = action === 'approve' ? 'yes' : 'no';
+    const actionResponseMap: Record<CallbackAction, string> = {
+      approve: 'yes',
+      deny: 'no',
+      continue: 'continue',
+      stop: 'stop',
+      details: 'tell me more',
+    };
+    const responseText = actionResponseMap[action];
 
     log.info('Received callback query', {
       from: from.username ?? String(from.id),
