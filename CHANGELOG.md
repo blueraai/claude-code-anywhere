@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.29](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.28...v0.6.29) (2026-01-10)
+
+
+### Bug Fixes
+
+* **ci:** prevent releases with failing tests ([b0e3663](https://github.com/blueraai/claude-code-anywhere/commit/b0e3663db0d20cb45600ce683f7cf137c23e54ec))
+
 ## [0.6.28](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.27...v0.6.28) (2026-01-10)
 
 
