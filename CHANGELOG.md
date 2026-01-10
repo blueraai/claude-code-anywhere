@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.6](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.5...v0.6.6) (2026-01-10)
+
+
+### Features
+
+* **sessions:** auto-register sessions on enable and at session start ([22cc9bd](https://github.com/blueraai/claude-code-anywhere/commit/22cc9bdaf93df5ab53cc18a92d5448d9c96d4aaf))
+
 ## [0.6.5](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.4...v0.6.5) (2026-01-10)
 
 
