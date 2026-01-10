@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.22](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.21...v0.6.22) (2026-01-10)
+
+
+### Bug Fixes
+
+* **routes:** respect session-enabled state in /api/session endpoint ([b2f4529](https://github.com/blueraai/claude-code-anywhere/commit/b2f452911319432beebccbaf215dda9faae662f6))
+
 ## [0.6.21](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.20...v0.6.21) (2026-01-10)
 
 
