@@ -55,10 +55,14 @@ program
     const configResult = loadEmailConfig();
     if (!configResult.success) {
       console.error(`Error: ${configResult.error}`);
-      console.error('\nPlease set the following environment variables:');
-      console.error('  EMAIL_USER=claude-cca@gmail.com');
-      console.error('  EMAIL_PASS=your-app-password');
-      console.error('  EMAIL_RECIPIENT=you@example.com');
+      console.error('\nCreate ~/.claude/claude-code-anywhere/config.json:');
+      console.error('  {');
+      console.error('    "email": {');
+      console.error('      "user": "claude-cca@gmail.com",');
+      console.error('      "pass": "your-app-password",');
+      console.error('      "recipient": "you@example.com"');
+      console.error('    }');
+      console.error('  }');
       process.exit(1);
     }
 

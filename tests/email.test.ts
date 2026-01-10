@@ -42,31 +42,31 @@ describe('EmailClient', () => {
     it('throws when user is missing', () => {
       const config = { ...validConfig, user: '' };
       const client = new EmailClient(config);
-      expect(() => client.validateConfig()).toThrow('EMAIL_USER is required');
+      expect(() => client.validateConfig()).toThrow('config.json');
     });
 
     it('throws when pass is missing', () => {
       const config = { ...validConfig, pass: '' };
       const client = new EmailClient(config);
-      expect(() => client.validateConfig()).toThrow('EMAIL_PASS is required');
+      expect(() => client.validateConfig()).toThrow('config.json');
     });
 
     it('throws when recipient is missing', () => {
       const config = { ...validConfig, recipient: '' };
       const client = new EmailClient(config);
-      expect(() => client.validateConfig()).toThrow('EMAIL_RECIPIENT is required');
+      expect(() => client.validateConfig()).toThrow('config.json');
     });
 
     it('throws when smtpHost is missing', () => {
       const config = { ...validConfig, smtpHost: '' };
       const client = new EmailClient(config);
-      expect(() => client.validateConfig()).toThrow('SMTP_HOST is required');
+      expect(() => client.validateConfig()).toThrow('smtpHost');
     });
 
     it('throws when imapHost is missing', () => {
       const config = { ...validConfig, imapHost: '' };
       const client = new EmailClient(config);
-      expect(() => client.validateConfig()).toThrow('IMAP_HOST is required');
+      expect(() => client.validateConfig()).toThrow('imapHost');
     });
 
     it('does not throw with valid config', () => {

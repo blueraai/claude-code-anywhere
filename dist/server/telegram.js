@@ -6,6 +6,7 @@
  */
 import axios from 'axios';
 import { TELEGRAM_API_BASE_URL, TELEGRAM_POLL_INTERVAL_MS, TELEGRAM_POLL_TIMEOUT_SECONDS, } from '../shared/constants.js';
+import { TelegramConfigError } from '../shared/errors.js';
 import { createLogger } from '../shared/logger.js';
 const log = createLogger('telegram');
 /**
@@ -151,10 +152,10 @@ export class TelegramClient {
      */
     validateConfig() {
         if (!this.config.botToken) {
-            throw new Error('TELEGRAM_BOT_TOKEN is required');
+            throw new TelegramConfigError('botToken');
         }
         if (!this.config.chatId) {
-            throw new Error('TELEGRAM_CHAT_ID is required');
+            throw new TelegramConfigError('chatId');
         }
     }
     /**

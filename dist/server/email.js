@@ -8,6 +8,7 @@ import { ImapFlow } from 'imapflow';
 import nodemailer from 'nodemailer';
 import { sessionManager } from './sessions.js';
 import { MAX_EMAIL_BODY_LENGTH } from '../shared/constants.js';
+import { EmailConfigError, MissingConfigError } from '../shared/errors.js';
 import { createLogger } from '../shared/logger.js';
 const log = createLogger('email');
 /**
@@ -83,19 +84,19 @@ export class EmailClient {
      */
     validateConfig() {
         if (!this.config.user) {
-            throw new Error('EMAIL_USER is required');
+            throw new EmailConfigError('user');
         }
         if (!this.config.pass) {
-            throw new Error('EMAIL_PASS is required');
+            throw new EmailConfigError('pass');
         }
         if (!this.config.recipient) {
-            throw new Error('EMAIL_RECIPIENT is required');
+            throw new EmailConfigError('recipient');
         }
         if (!this.config.smtpHost) {
-            throw new Error('SMTP_HOST is required');
+            throw new MissingConfigError('smtpHost');
         }
         if (!this.config.imapHost) {
-            throw new Error('IMAP_HOST is required');
+            throw new MissingConfigError('imapHost');
         }
     }
     /**

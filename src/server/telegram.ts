@@ -11,6 +11,7 @@ import {
   TELEGRAM_POLL_INTERVAL_MS,
   TELEGRAM_POLL_TIMEOUT_SECONDS,
 } from '../shared/constants.js';
+import { TelegramConfigError } from '../shared/errors.js';
 import { createLogger } from '../shared/logger.js';
 import type {
   Channel,
@@ -260,10 +261,10 @@ export class TelegramClient implements Channel {
    */
   validateConfig(): void {
     if (!this.config.botToken) {
-      throw new Error('TELEGRAM_BOT_TOKEN is required');
+      throw new TelegramConfigError('botToken');
     }
     if (!this.config.chatId) {
-      throw new Error('TELEGRAM_CHAT_ID is required');
+      throw new TelegramConfigError('chatId');
     }
   }
 

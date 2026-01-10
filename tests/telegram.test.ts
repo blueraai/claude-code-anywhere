@@ -39,12 +39,12 @@ describe('TelegramClient', () => {
   describe('validateConfig', () => {
     it('throws when botToken is missing', () => {
       const client = new TelegramClient({ botToken: '', chatId: '123' });
-      expect(() => client.validateConfig()).toThrow('TELEGRAM_BOT_TOKEN is required');
+      expect(() => client.validateConfig()).toThrow('config.json');
     });
 
     it('throws when chatId is missing', () => {
       const client = new TelegramClient({ botToken: 'token', chatId: '' });
-      expect(() => client.validateConfig()).toThrow('TELEGRAM_CHAT_ID is required');
+      expect(() => client.validateConfig()).toThrow('config.json');
     });
 
     it('does not throw with valid config', () => {
