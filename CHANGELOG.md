@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.12](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.10...v0.6.12) (2026-01-10)
+
+
+### Features
+
+* **hooks:** add PreToolUse hook to block manual releases ([23e6b8b](https://github.com/blueraai/claude-code-anywhere/commit/23e6b8b49b5789a1eaa2160036097ae8e084f81e))
+
 ## [0.6.11](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.10...v0.6.11) (2026-01-10)
 
 ## [0.6.10](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.9...v0.6.10) (2026-01-10)
