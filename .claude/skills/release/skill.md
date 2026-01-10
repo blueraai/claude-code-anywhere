@@ -12,10 +12,12 @@ version: 1.0.0
 
 | Script | What it does |
 |--------|--------------|
-| `__SKILL__=release bun run release` | **Auto-detect** bump from commits, commit, tag, push |
+| `__SKILL__=release bun run release` | **Auto-detect** bump from commits, commit, push (tag created by CI) |
 | `__SKILL__=release bun run release:patch` | Force patch (0.0.x) |
 | `__SKILL__=release bun run release:minor` | Force minor (0.x.0) |
 | `__SKILL__=release bun run release:major` | Force major (x.0.0) |
+
+**Note:** Tags are NOT pushed locally. The Auto Release workflow waits for CI to pass, then creates and pushes the tag. This prevents releasing with failing tests.
 
 ## Pre-flight Checks
 

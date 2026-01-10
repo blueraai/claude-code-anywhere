@@ -36,10 +36,10 @@
     "version:major": "commit-and-tag-version --release-as major --skip.commit --skip.tag",
     "version:minor": "commit-and-tag-version --release-as minor --skip.commit --skip.tag",
     "version:patch": "commit-and-tag-version --release-as patch --skip.commit --skip.tag",
-    "release": "commit-and-tag-version && git push --follow-tags",
-    "release:patch": "commit-and-tag-version --release-as patch && git push --follow-tags",
-    "release:minor": "commit-and-tag-version --release-as minor && git push --follow-tags",
-    "release:major": "commit-and-tag-version --release-as major && git push --follow-tags"
+    "release": "commit-and-tag-version --skip.tag && git push",
+    "release:patch": "commit-and-tag-version --release-as patch --skip.tag && git push",
+    "release:minor": "commit-and-tag-version --release-as minor --skip.tag && git push",
+    "release:major": "commit-and-tag-version --release-as major --skip.tag && git push"
   },
   "author": "Bluera",
   "license": "MIT",

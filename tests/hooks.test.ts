@@ -428,7 +428,8 @@ describe('logger uses canonical path (regression test)', () => {
 
   it('logger.ts imports getLogsDir from config', () => {
     const content = readFileSync(join(process.cwd(), 'src/shared/logger.ts'), 'utf-8');
-    expect(content).toContain('import { getLogsDir }');
+    // Use regex to allow for additional imports alongside getLogsDir
+    expect(content).toMatch(/import \{[^}]*getLogsDir[^}]*\} from ['"]\.\/config\.js['"]/);
   });
 
   it('logger.ts does not use __dirname for LOGS_DIR', () => {
