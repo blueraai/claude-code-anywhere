@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.20](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.19...v0.6.20) (2026-01-10)
+
+
+### Bug Fixes
+
+* **hooks:** use /api/active for PreToolUse to match statusline behavior ([9c360d9](https://github.com/blueraai/claude-code-anywhere/commit/9c360d9114de4f3b099ae3f0c1fb391d235f0281))
+
 ## [0.6.19](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.18...v0.6.19) (2026-01-10)
 
 
