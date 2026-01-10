@@ -154,6 +154,7 @@ function writeLog(level: LogLevel, component: string, message: string, data?: un
   const formatted = formatMessage(level, component, message, data);
 
   // Always write to console
+  /* eslint-disable no-console -- Logger is the single point for console output */
   if (level === 'ERROR') {
     console.error(formatted);
   } else if (level === 'WARN') {
@@ -161,6 +162,7 @@ function writeLog(level: LogLevel, component: string, message: string, data?: un
   } else {
     console.log(formatted);
   }
+  /* eslint-enable no-console */
 
   // Write to file (fail fast if logging fails)
   ensureLogsDir();

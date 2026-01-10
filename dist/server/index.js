@@ -121,7 +121,14 @@ export class BridgeServer {
         sessionManager.storeResponse(sessionId, responseText, channel);
         log.info(`Response stored for session ${sessionId} via ${channel}`);
         // Sync response to other channels (so all channels show the conversation)
-        await this.channelManager.syncResponseToOtherChannels(sessionId, responseText, channel);
+        // Wrapped in try-catch to prevent sync failures from crashing the response handler
+        try {
+            await this.channelManager.syncResponseToOtherChannels(sessionId, responseText, channel);
+        }
+        catch (error) {
+            const errMsg = error instanceof Error ? error.message : 'Unknown error';
+            log.error(`Failed to sync response to other channels: ${errMsg}`);
+        }
     }
     /**
      * Stop the server
@@ -269,6 +276,7 @@ export class BridgeServer {
     printBanner(enabledChannels, actualPort) {
         log.info(`Server started on port ${String(actualPort)}`);
         const channelsStr = enabledChannels.join(', ');
+        // eslint-disable-next-line no-console -- Intentional user-facing banner output
         console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║           Claude Code Anywhere - Bridge Server                 ║

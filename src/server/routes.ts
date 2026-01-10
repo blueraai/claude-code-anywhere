@@ -5,9 +5,12 @@
 import { sessionManager } from './sessions.js';
 import { stateManager } from './state.js';
 import packageJson from '../../package.json' with { type: 'json' };
+import { createLogger } from '../shared/logger.js';
 import type { ChannelManager } from './channels.js';
 import type { ServerStatus, HookEvent } from '../shared/types.js';
 import type { IncomingMessage, ServerResponse } from 'http';
+
+const log = createLogger('routes');
 
 const VALID_HOOK_EVENTS = new Set<string>([
   'Notification',
@@ -298,7 +301,7 @@ export function handleGetResponse(
   const response = sessionManager.consumeResponse(sessionId);
 
   if (response !== null) {
-    console.log(`[api] Response delivered for session ${sessionId}`);
+    log.info(`Response delivered for session ${sessionId}`);
     sendJSON(res, 200, response);
   } else {
     sendJSON(res, 200, { response: null });

@@ -4,6 +4,8 @@
 import { sessionManager } from './sessions.js';
 import { stateManager } from './state.js';
 import packageJson from '../../package.json' with { type: 'json' };
+import { createLogger } from '../shared/logger.js';
+const log = createLogger('routes');
 const VALID_HOOK_EVENTS = new Set([
     'Notification',
     'Stop',
@@ -236,7 +238,7 @@ export async function handleRegisterSession(req, res, ctx) {
 export function handleGetResponse(_req, res, sessionId) {
     const response = sessionManager.consumeResponse(sessionId);
     if (response !== null) {
-        console.log(`[api] Response delivered for session ${sessionId}`);
+        log.info(`Response delivered for session ${sessionId}`);
         sendJSON(res, 200, response);
     }
     else {

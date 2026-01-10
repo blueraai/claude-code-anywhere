@@ -3,7 +3,10 @@
  */
 
 import { SessionError } from '../shared/errors.js';
+import { createLogger } from '../shared/logger.js';
 import type { Session, EmailResponse, HookEvent, ParsedSMS } from '../shared/types.js';
+
+const log = createLogger('sessions');
 
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -249,7 +252,7 @@ class SessionManager {
       if (now - session.lastActivity > SESSION_TIMEOUT_MS) {
         this.sessions.delete(sessionId);
         this.pendingResponses.delete(sessionId);
-        console.log(`[cleanup] Expired session: ${sessionId}`);
+        log.info(`Expired session: ${sessionId}`);
       }
     }
   }

@@ -58,7 +58,7 @@ export default tseslint.config(
       'no-constant-condition': ['error', { checkLoops: false }],
 
       // General best practices
-      'no-console': 'off', // CLI tool needs console
+      'no-console': 'error', // Use logger instead - see CLAUDE.md
       eqeqeq: ['error', 'always'],
       'no-var': 'error',
       'prefer-const': 'error',

@@ -439,3 +439,12 @@ describe('logger uses canonical path (regression test)', () => {
     expect(content).not.toMatch(/__dirname.*LOGS_DIR/);
   });
 });
+
+describe('index.ts error handling (CLAUDE.md compliance)', () => {
+  it('syncResponseToOtherChannels call is wrapped in try-catch', () => {
+    const content = readFileSync(join(process.cwd(), 'src/server/index.ts'), 'utf-8');
+    // The sync call should be in a try block to prevent crashing the response handler
+    // Look for pattern: try { ... syncResponseToOtherChannels ... } catch
+    expect(content).toMatch(/try\s*\{[^}]*syncResponseToOtherChannels[^}]*\}\s*catch/s);
+  });
+});

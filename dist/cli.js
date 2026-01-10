@@ -9,6 +9,20 @@ import { EmailClient } from './server/email.js';
 import { createBridgeServer } from './server/index.js';
 import { enableGlobal, disableGlobal, loadState } from './server/state.js';
 import { loadEmailConfig, loadAppConfig } from './shared/config.js';
+/**
+ * CLI output helpers - single point for console access
+ * Easy to swap to another output mechanism if needed
+ */
+/* eslint-disable no-console -- CLI output helper is the single point for console access */
+const output = {
+    log: (...args) => {
+        console.log(...args);
+    },
+    error: (...args) => {
+        console.error(...args);
+    },
+};
+/* eslint-enable no-console */
 const program = new Command();
 /**
  * Type guard for status response
@@ -40,28 +54,28 @@ program
     .action(async (options) => {
     const port = parseInt(options.port, 10);
     if (isNaN(port) || port < 1 || port > 65535) {
-        console.error('Error: Invalid port number');
+        output.error('Error: Invalid port number');
         process.exit(1);
     }
     // Validate config
     const configResult = loadEmailConfig();
     if (!configResult.success) {
-        console.error(`Error: ${configResult.error}`);
-        console.error('\nCreate ~/.claude/claude-code-anywhere/config.json:');
-        console.error('  {');
-        console.error('    "email": {');
-        console.error('      "user": "claude-cca@gmail.com",');
-        console.error('      "pass": "your-app-password",');
-        console.error('      "recipient": "you@example.com"');
-        console.error('    }');
-        console.error('  }');
+        output.error(`Error: ${configResult.error}`);
+        output.error('\nCreate ~/.claude/claude-code-anywhere/config.json:');
+        output.error('  {');
+        output.error('    "email": {');
+        output.error('      "user": "claude-cca@gmail.com",');
+        output.error('      "pass": "your-app-password",');
+        output.error('      "recipient": "you@example.com"');
+        output.error('    }');
+        output.error('  }');
         process.exit(1);
     }
     try {
         const server = createBridgeServer(port);
         // Handle graceful shutdown
         const shutdown = () => {
-            console.log('\nShutting down...');
+            output.log('\nShutting down...');
             void server.stop().then(() => {
                 process.exit(0);
             });
@@ -70,11 +84,11 @@ program
         process.on('SIGTERM', shutdown);
         // Start server
         await server.start();
-        console.log('\nServer running. Press Ctrl+C to stop.\n');
+        output.log('\nServer running. Press Ctrl+C to stop.\n');
     }
     catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Error: ${message}`);
+        output.error(`Error: ${message}`);
         process.exit(1);
     }
 });
@@ -89,22 +103,22 @@ program
     try {
         const response = await fetch(`${options.url}/api/status`);
         if (!response.ok) {
-            console.error('Error: Server returned', response.status);
+            output.error('Error: Server returned', response.status);
             process.exit(1);
         }
         const rawStatus = await response.json();
         if (!isStatusResponse(rawStatus)) {
-            console.error('Error: Invalid response from server');
+            output.error('Error: Invalid response from server');
             process.exit(1);
         }
-        console.log('Bridge Server Status:');
-        console.log(`  Status: ${rawStatus.status}`);
-        console.log(`  Active Sessions: ${String(rawStatus.activeSessions)}`);
-        console.log(`  Pending Responses: ${String(rawStatus.pendingResponses)}`);
-        console.log(`  Uptime: ${String(rawStatus.uptime)} seconds`);
+        output.log('Bridge Server Status:');
+        output.log(`  Status: ${rawStatus.status}`);
+        output.log(`  Active Sessions: ${String(rawStatus.activeSessions)}`);
+        output.log(`  Pending Responses: ${String(rawStatus.pendingResponses)}`);
+        output.log(`  Uptime: ${String(rawStatus.uptime)} seconds`);
     }
     catch {
-        console.error('Error: Could not connect to server. Is it running?');
+        output.error('Error: Could not connect to server. Is it running?');
         process.exit(1);
     }
 });
@@ -117,11 +131,11 @@ program
     .action(() => {
     try {
         enableGlobal();
-        console.log('Notifications enabled globally');
+        output.log('Notifications enabled globally');
     }
     catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Error: ${message}`);
+        output.error(`Error: ${message}`);
         process.exit(1);
     }
 });
@@ -134,11 +148,11 @@ program
     .action(() => {
     try {
         disableGlobal();
-        console.log('Notifications disabled globally');
+        output.log('Notifications disabled globally');
     }
     catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Error: ${message}`);
+        output.error(`Error: ${message}`);
         process.exit(1);
     }
 });
@@ -151,28 +165,28 @@ program
     .action(async () => {
     const configResult = loadEmailConfig();
     if (!configResult.success) {
-        console.error(`Error: ${configResult.error}`);
+        output.error(`Error: ${configResult.error}`);
         process.exit(1);
     }
     const { recipient } = configResult.data;
-    console.log(`Sending test email to ${recipient}...`);
+    output.log(`Sending test email to ${recipient}...`);
     try {
         const client = new EmailClient(configResult.data);
         await client.initialize();
         const result = await client.sendEmail('Test from Claude Code', 'Test message from Claude Code Email Bridge. Your setup is working!\n\nYou can reply to this email to test bidirectional communication.');
         if (result.success) {
-            console.log('Test email sent successfully!');
-            console.log(`  Message ID: ${result.data}`);
+            output.log('Test email sent successfully!');
+            output.log(`  Message ID: ${result.data}`);
         }
         else {
-            console.error(`Error: ${result.error}`);
+            output.error(`Error: ${result.error}`);
             process.exit(1);
         }
         client.dispose();
     }
     catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Error: ${message}`);
+        output.error(`Error: ${message}`);
         process.exit(1);
     }
 });
@@ -185,27 +199,27 @@ program
     .action(() => {
     const state = loadState();
     const configResult = loadAppConfig();
-    console.log('Claude Code Anywhere Configuration:');
-    console.log('');
-    console.log('Global State:');
-    console.log(`  Enabled: ${state.enabled ? 'Yes' : 'No'}`);
-    console.log('');
-    console.log('Hook Settings:');
-    console.log(`  Notification: ${state.hooks.Notification ? 'On' : 'Off'}`);
-    console.log(`  Stop: ${state.hooks.Stop ? 'On' : 'Off'}`);
-    console.log(`  PreToolUse: ${state.hooks.PreToolUse ? 'On' : 'Off'}`);
-    console.log(`  UserPromptSubmit: ${state.hooks.UserPromptSubmit ? 'On' : 'Off'}`);
-    console.log('');
+    output.log('Claude Code Anywhere Configuration:');
+    output.log('');
+    output.log('Global State:');
+    output.log(`  Enabled: ${state.enabled ? 'Yes' : 'No'}`);
+    output.log('');
+    output.log('Hook Settings:');
+    output.log(`  Notification: ${state.hooks.Notification ? 'On' : 'Off'}`);
+    output.log(`  Stop: ${state.hooks.Stop ? 'On' : 'Off'}`);
+    output.log(`  PreToolUse: ${state.hooks.PreToolUse ? 'On' : 'Off'}`);
+    output.log(`  UserPromptSubmit: ${state.hooks.UserPromptSubmit ? 'On' : 'Off'}`);
+    output.log('');
     if (configResult.success) {
-        console.log('Email Configuration:');
-        console.log(`  From: ${configResult.data.email.user}`);
-        console.log(`  To: ${configResult.data.email.recipient}`);
-        console.log(`  Bridge URL: ${configResult.data.bridgeUrl}`);
-        console.log(`  Port: ${String(configResult.data.port)}`);
+        output.log('Email Configuration:');
+        output.log(`  From: ${configResult.data.email.user}`);
+        output.log(`  To: ${configResult.data.email.recipient}`);
+        output.log(`  Bridge URL: ${configResult.data.bridgeUrl}`);
+        output.log(`  Port: ${String(configResult.data.port)}`);
     }
     else {
-        console.log('Email Configuration:');
-        console.log(`  Error: ${configResult.error}`);
+        output.log('Email Configuration:');
+        output.log(`  Error: ${configResult.error}`);
     }
 });
 // Parse and execute

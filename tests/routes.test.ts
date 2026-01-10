@@ -1,7 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { RouteContext } from '../src/server/routes.js';
+
+describe('routes.ts uses logger (CLAUDE.md compliance)', () => {
+  const routesSource = readFileSync('src/server/routes.ts', 'utf-8');
+
+  it('imports createLogger from shared/logger', () => {
+    expect(routesSource).toMatch(
+      /import \{[^}]*createLogger[^}]*\} from ['"]\.\.\/shared\/logger\.js['"]/
+    );
+  });
+
+  it('does not use console.log', () => {
+    // CLAUDE.md: use createLogger('component') for logging
+    expect(routesSource).not.toContain('console.log');
+  });
+});
 
 // Mock the modules before importing the routes
 vi.mock('../src/server/sessions.js', () => ({

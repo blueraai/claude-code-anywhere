@@ -1,6 +1,22 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync } from 'fs';
 import { sessionManager } from '../src/server/sessions.js';
 import { SessionError } from '../src/shared/errors.js';
+
+describe('sessions.ts uses logger (CLAUDE.md compliance)', () => {
+  const sessionsSource = readFileSync('src/server/sessions.ts', 'utf-8');
+
+  it('imports createLogger from shared/logger', () => {
+    expect(sessionsSource).toMatch(
+      /import \{[^}]*createLogger[^}]*\} from ['"]\.\.\/shared\/logger\.js['"]/
+    );
+  });
+
+  it('does not use console.log', () => {
+    // CLAUDE.md: use createLogger('component') for logging
+    expect(sessionsSource).not.toContain('console.log');
+  });
+});
 
 describe('SessionManager', () => {
   beforeEach(() => {

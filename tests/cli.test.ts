@@ -1,7 +1,35 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
+import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+
+describe('cli.ts uses output helper (CLAUDE.md compliance)', () => {
+  const cliSource = readFileSync('src/cli.ts', 'utf-8');
+
+  it('defines an output helper object', () => {
+    expect(cliSource).toMatch(/const output\s*=\s*\{/);
+  });
+
+  it('output helper has log and error methods', () => {
+    expect(cliSource).toMatch(/log:\s*\([^)]*\)[^=]*=>/);
+    expect(cliSource).toMatch(/error:\s*\([^)]*\)[^=]*=>/);
+  });
+
+  it('only uses console.log/error inside the output helper', () => {
+    // Find all console.log and console.error occurrences
+    const consoleMatches = cliSource.match(/console\.(log|error)/g) ?? [];
+    // Should only have exactly 2: one in output.log, one in output.error
+    expect(consoleMatches.length).toBe(2);
+  });
+
+  it('uses output.log and output.error for CLI output', () => {
+    // Should have multiple uses of output.log and output.error
+    const outputLogMatches = cliSource.match(/output\.log\(/g) ?? [];
+    const outputErrorMatches = cliSource.match(/output\.error\(/g) ?? [];
+    expect(outputLogMatches.length).toBeGreaterThan(5);
+    expect(outputErrorMatches.length).toBeGreaterThan(3);
+  });
+});
 
 // Mock config to use temp directory
 const testDir = join(tmpdir(), 'claude-code-anywhere-cli-test-' + Date.now());
