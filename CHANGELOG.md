@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.13](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.12...v0.6.13) (2026-01-10)
+
+
+### Bug Fixes
+
+* **commands:** remove inline backticks accessing files outside project ([50c5137](https://github.com/blueraai/claude-code-anywhere/commit/50c5137a200f9cd7fd89c6f7b7d4e81a05b956fd))
+
 ## [0.6.12](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.10...v0.6.12) (2026-01-10)
 
 
