@@ -353,6 +353,34 @@ describe('pretooluse.sh approval patterns', () => {
 // TODO: Add sticky-enabled tests when implementing --continue support
 // See: SessionStart sticky-enabled feature (claude --continue support)
 
+describe('SessionStart server version check (auto-restart on plugin update)', () => {
+  // When plugin is updated but server is still running old version,
+  // SessionStart should detect the mismatch and restart the server
+
+  it('check-install.sh contains version comparison logic', () => {
+    const content = readFileSync(join(process.cwd(), 'hooks/check-install.sh'), 'utf-8');
+
+    // Should get server version from API
+    expect(content).toMatch(/SERVER_VERSION|server.*version/i);
+
+    // Should get plugin version from plugin.json
+    expect(content).toMatch(/PLUGIN_VERSION|plugin\.json/i);
+
+    // Should compare versions
+    expect(content).toMatch(/SERVER_VERSION.*PLUGIN_VERSION|version.*mismatch/i);
+  });
+
+  it('check-install.sh restarts server on version mismatch', () => {
+    const content = readFileSync(join(process.cwd(), 'hooks/check-install.sh'), 'utf-8');
+
+    // Should kill old server if version mismatch
+    expect(content).toMatch(/pkill|kill.*server/i);
+
+    // Should start new server after killing old one
+    expect(content).toMatch(/bun run server|start.*server/i);
+  });
+});
+
 describe('hook scripts use canonical port path (regression tests)', () => {
   // These tests ensure hook scripts read from ~/.config/claude-code-anywhere/port
   // NOT from relative paths like $SCRIPT_DIR/../../port which fail when

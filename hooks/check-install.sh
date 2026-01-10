@@ -40,10 +40,28 @@ if [ -n "$SESSION_ID" ]; then
   if [ -n "$PORT_FILE" ] && [ -f "$PORT_FILE" ]; then
     PORT=$(cat "$PORT_FILE" 2>/dev/null || true)
     if [ -n "$PORT" ]; then
+      # Check for version mismatch - restart server if plugin was updated
+      SERVER_VERSION=$(curl -s --max-time 1 "http://localhost:${PORT}/" 2>/dev/null | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || true)
+      if [ -n "$SERVER_VERSION" ] && [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+        PLUGIN_VERSION=$(cat "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json" 2>/dev/null | grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4 || true)
+        if [ -n "$PLUGIN_VERSION" ] && [ "$SERVER_VERSION" != "$PLUGIN_VERSION" ]; then
+          # Version mismatch - kill old server and start new one
+          pkill -f "bun run server" 2>/dev/null || true
+          sleep 1
+          # Start new server in background from plugin root
+          cd "${CLAUDE_PLUGIN_ROOT}" && nohup bun run server > /tmp/claude-code-anywhere-server.log 2>&1 &
+          sleep 2
+          # Update PORT from new server
+          PORT=$(cat "$PORT_FILE" 2>/dev/null || true)
+        fi
+      fi
+
       # Synchronous registration with short timeout - enables session for notifications
       # Using synchronous curl (no &) to ensure registration completes before hook exits
-      curl -s -X POST "http://localhost:${PORT}/api/session/${SESSION_ID}/enable" \
-        --max-time 1 >/dev/null 2>&1 || true
+      if [ -n "$PORT" ]; then
+        curl -s -X POST "http://localhost:${PORT}/api/session/${SESSION_ID}/enable" \
+          --max-time 1 >/dev/null 2>&1 || true
+      fi
     fi
   fi
 fi
