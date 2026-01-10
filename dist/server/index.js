@@ -3,8 +3,9 @@
  *
  * Supports multiple channels: Email (SMTP/IMAP), Telegram
  */
-import { writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync, mkdirSync, existsSync } from 'fs';
 import { createServer } from 'http';
+import { homedir } from 'os';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { ChannelManager } from './channels.js';
@@ -16,9 +17,13 @@ import { loadEmailConfig, loadTelegramConfig } from '../shared/config.js';
 import { createLogger } from '../shared/logger.js';
 const log = createLogger('server');
 const DEFAULT_PORT = 3847;
-// Port file location: repo root (two levels up from dist/server/)
+// Port file locations
 const __dirname = dirname(fileURLToPath(import.meta.url));
+// Plugin-local port file (for internal use)
 const PORT_FILE_PATH = join(__dirname, '..', '..', 'port');
+// Config port file (canonical location for statusline and external tools)
+const CONFIG_DIR = join(homedir(), '.config', 'claude-code-anywhere');
+const CONFIG_PORT_FILE_PATH = join(CONFIG_DIR, 'port');
 /**
  * Bridge server instance
  */
@@ -79,9 +84,15 @@ export class BridgeServer {
         // Get actual port (handles port 0 for dynamic assignment)
         const address = this.server.address();
         const actualPort = address !== null && typeof address === 'object' ? address.port : this.port;
-        // Write port file so hooks can discover the server
+        // Write port files so hooks and statusline can discover the server
         writeFileSync(PORT_FILE_PATH, String(actualPort), 'utf-8');
         log.info(`Port file written to ${PORT_FILE_PATH}`);
+        // Also write to config dir (canonical location for external tools)
+        if (!existsSync(CONFIG_DIR)) {
+            mkdirSync(CONFIG_DIR, { recursive: true });
+        }
+        writeFileSync(CONFIG_PORT_FILE_PATH, String(actualPort), 'utf-8');
+        log.info(`Config port file written to ${CONFIG_PORT_FILE_PATH}`);
         this.printBanner(enabledChannels, actualPort);
     }
     /**
@@ -114,10 +125,17 @@ export class BridgeServer {
      */
     async stop() {
         sessionManager.stop();
-        // Clean up port file
+        // Clean up port files
         try {
             unlinkSync(PORT_FILE_PATH);
             log.info('Port file removed');
+        }
+        catch {
+            // Ignore if file doesn't exist
+        }
+        try {
+            unlinkSync(CONFIG_PORT_FILE_PATH);
+            log.info('Config port file removed');
         }
         catch {
             // Ignore if file doesn't exist

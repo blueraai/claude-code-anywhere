@@ -6,7 +6,7 @@
  */
 
 /** Current version marker for the status block */
-export const CURRENT_VERSION = 'v1';
+export const CURRENT_VERSION = 'v3';
 
 /** Start marker for the status block */
 export const START_MARKER = '# --- claude-code-anywhere status ---';
