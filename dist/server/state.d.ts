@@ -69,8 +69,14 @@ export declare class StateManager {
     disable(): boolean;
     /**
      * Check if a hook is enabled (reads fresh state from disk)
+     * Requires BOTH global enabled AND specific hook enabled
      */
     isHookEnabled(hook: HookEvent): boolean;
+    /**
+     * Check if a specific hook type is enabled (ignores global state)
+     * Use this when checking if a hook type is allowed, regardless of global/session state
+     */
+    isSpecificHookEnabled(hook: HookEvent): boolean;
 }
 export declare const stateManager: StateManager;
 //# sourceMappingURL=state.d.ts.map

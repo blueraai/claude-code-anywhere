@@ -186,9 +186,17 @@ export async function handleRegisterSession(req, res, ctx) {
     const sessionId = rawData.sessionId;
     const event = rawData.event;
     const prompt = rawData.prompt;
-    // Check if enabled
-    if (!stateManager.isHookEnabled(event)) {
+    // Check if specific hook type is enabled (e.g., PreToolUse, Stop, etc.)
+    if (!stateManager.isSpecificHookEnabled(event)) {
         sendJSON(res, 200, { registered: false, reason: 'Hook disabled' });
+        return;
+    }
+    // Check if notifications are active for this session (global OR session-specific)
+    // This matches the logic in /api/active endpoint
+    const globalEnabled = stateManager.isEnabled();
+    const sessionEnabled = sessionManager.hasSession(sessionId) && sessionManager.isSessionEnabled(sessionId);
+    if (!globalEnabled && !sessionEnabled) {
+        sendJSON(res, 200, { registered: false, reason: 'Notifications not active' });
         return;
     }
     // Register the session

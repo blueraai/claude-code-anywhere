@@ -243,10 +243,20 @@ export class StateManager {
 
   /**
    * Check if a hook is enabled (reads fresh state from disk)
+   * Requires BOTH global enabled AND specific hook enabled
    */
   isHookEnabled(hook: HookEvent): boolean {
     this.reload();
     return this.state.enabled && this.state.hooks[hook];
+  }
+
+  /**
+   * Check if a specific hook type is enabled (ignores global state)
+   * Use this when checking if a hook type is allowed, regardless of global/session state
+   */
+  isSpecificHookEnabled(hook: HookEvent): boolean {
+    this.reload();
+    return this.state.hooks[hook];
   }
 }
 

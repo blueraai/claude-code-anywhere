@@ -22,6 +22,7 @@ vi.mock('../src/server/state.js', () => ({
   stateManager: {
     isHookEnabled: vi.fn(),
     isEnabled: vi.fn(),
+    isSpecificHookEnabled: vi.fn(),
     enable: vi.fn(),
     disable: vi.fn(),
   },
@@ -493,7 +494,7 @@ describe('handleRegisterSession', () => {
     registerSession: Mock;
     storeMessageId: Mock;
   };
-  let stateManager: { isHookEnabled: Mock };
+  let stateManager: { isHookEnabled: Mock; isEnabled: Mock; isSpecificHookEnabled: Mock };
 
   beforeEach(async () => {
     vi.resetModules();
@@ -576,6 +577,7 @@ describe('handleRegisterSession', () => {
     const { handleRegisterSession } = await import('../src/server/routes.js');
 
     stateManager.isHookEnabled.mockReturnValue(false);
+    stateManager.isSpecificHookEnabled.mockReturnValue(false); // Hook type is disabled
 
     const req = createMockRequest();
     const res = createMockResponse();
@@ -598,6 +600,8 @@ describe('handleRegisterSession', () => {
     const { handleRegisterSession } = await import('../src/server/routes.js');
 
     stateManager.isHookEnabled.mockReturnValue(true);
+    stateManager.isSpecificHookEnabled.mockReturnValue(true);
+    stateManager.isEnabled.mockReturnValue(true); // Global enabled
 
     const req = createMockRequest();
     const res = createMockResponse();
@@ -631,6 +635,8 @@ describe('handleRegisterSession', () => {
     const { handleRegisterSession } = await import('../src/server/routes.js');
 
     stateManager.isHookEnabled.mockReturnValue(true);
+    stateManager.isSpecificHookEnabled.mockReturnValue(true);
+    stateManager.isEnabled.mockReturnValue(true); // Global enabled
 
     const req = createMockRequest();
     const res = createMockResponse();
@@ -1143,8 +1149,125 @@ describe('handleSendEmail edge cases', () => {
   });
 });
 
+describe('handleRegisterSession session-enabled mode (BUG FIX)', () => {
+  // BUG: When global is disabled but session is enabled, /api/session should
+  // still send notifications. Previously it only checked isHookEnabled() which
+  // required global enabled AND hook enabled. This broke session-only mode.
+
+  let sessionManager: {
+    registerSession: Mock;
+    storeMessageId: Mock;
+    hasSession: Mock;
+    isSessionEnabled: Mock;
+  };
+  let stateManager: { isHookEnabled: Mock; isEnabled: Mock; isSpecificHookEnabled: Mock };
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const sessionsMod = await import('../src/server/sessions.js');
+    const stateMod = await import('../src/server/state.js');
+    sessionManager = sessionsMod.sessionManager as typeof sessionManager;
+    stateManager = stateMod.stateManager as typeof stateManager;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('sends notification when session is enabled but global is disabled', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    // Global disabled, but session is enabled
+    stateManager.isEnabled.mockReturnValue(false);
+    stateManager.isHookEnabled.mockReturnValue(false); // This is what old code checked
+    stateManager.isSpecificHookEnabled.mockReturnValue(true); // Hook itself is enabled
+    sessionManager.hasSession.mockReturnValue(true);
+    sessionManager.isSessionEnabled.mockReturnValue(true); // Session IS enabled
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+    ctx.channelManager.sendToAll.mockResolvedValue({
+      successCount: 1,
+      failureCount: 0,
+      results: new Map([['telegram', { success: true, data: 'msg-id-789' }]]),
+    });
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'session-123', event: 'PreToolUse', prompt: 'Approve Bash?' })
+    );
+    await promise;
+
+    // Should send notification even though global is disabled
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { registered: boolean; channels: number };
+    expect(body.registered).toBe(true);
+    expect(body.channels).toBe(1);
+    expect(ctx.channelManager.sendToAll).toHaveBeenCalled();
+  });
+
+  it('rejects when hook type is disabled in state (even if session enabled)', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    // Global disabled, session enabled, but PreToolUse hook is disabled
+    stateManager.isEnabled.mockReturnValue(false);
+    stateManager.isHookEnabled.mockReturnValue(false);
+    stateManager.isSpecificHookEnabled.mockReturnValue(false); // Hook is disabled
+    sessionManager.hasSession.mockReturnValue(true);
+    sessionManager.isSessionEnabled.mockReturnValue(true);
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'session-123', event: 'PreToolUse', prompt: 'Approve Bash?' })
+    );
+    await promise;
+
+    // Should reject because PreToolUse hook is disabled
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { registered: boolean; reason: string };
+    expect(body.registered).toBe(false);
+    expect(body.reason).toBe('Hook disabled');
+  });
+
+  it('rejects when neither global nor session is enabled', async () => {
+    const { handleRegisterSession } = await import('../src/server/routes.js');
+
+    // Both global and session disabled
+    stateManager.isEnabled.mockReturnValue(false);
+    stateManager.isHookEnabled.mockReturnValue(false);
+    stateManager.isSpecificHookEnabled.mockReturnValue(true);
+    sessionManager.hasSession.mockReturnValue(true);
+    sessionManager.isSessionEnabled.mockReturnValue(false); // Session NOT enabled
+
+    const req = createMockRequest();
+    const res = createMockResponse();
+    const ctx = createMockContext();
+
+    const promise = handleRegisterSession(req, res, ctx);
+    emitRequestBody(
+      req,
+      JSON.stringify({ sessionId: 'session-123', event: 'PreToolUse', prompt: 'Approve Bash?' })
+    );
+    await promise;
+
+    // Should reject because neither global nor session is enabled
+    expect(res._statusCode).toBe(200);
+    const body = JSON.parse(res._body) as { registered: boolean; reason: string };
+    expect(body.registered).toBe(false);
+    expect(body.reason).toBe('Notifications not active');
+  });
+});
+
 describe('handleRegisterSession edge cases', () => {
-  let stateManager: { isHookEnabled: Mock };
+  let stateManager: { isHookEnabled: Mock; isEnabled: Mock; isSpecificHookEnabled: Mock };
 
   beforeEach(async () => {
     vi.resetModules();
