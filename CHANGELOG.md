@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.9](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.8...v0.6.9) (2026-01-10)
+
+
+### Features
+
+* **telegram:** add quick response buttons to Notification/Stop events ([d07b58d](https://github.com/blueraai/claude-code-anywhere/commit/d07b58deb5b9c8025295ebeaeb5890fa335c974a))
+
 ## [0.6.8](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.7...v0.6.8) (2026-01-10)
 
 
