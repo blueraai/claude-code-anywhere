@@ -229,6 +229,78 @@ describe('SessionStart hook (check-install.sh)', () => {
   });
 });
 
+describe('pretooluse.sh approval patterns', () => {
+  // Test the regex patterns used for approval/denial detection
+  const approvalPatterns =
+    /^(y|yes|ok|approve|approved|allow|go|continue|sure|yep|yeah|accept|👍|✅)/i;
+  const denialPatterns = /^(n|no|deny|denied|reject|stop|cancel|nope|nah|block|👎|❌)/i;
+
+  describe('approval patterns', () => {
+    const shouldApprove = [
+      'y',
+      'Y',
+      'yes',
+      'YES',
+      'Yes',
+      'ok',
+      'OK',
+      'approve',
+      'approved',
+      'allow',
+      'go',
+      'continue',
+      'sure',
+      'yep',
+      'yeah',
+      'accept',
+    ];
+
+    for (const response of shouldApprove) {
+      it(`accepts "${response}" as approval`, () => {
+        expect(approvalPatterns.test(response)).toBe(true);
+      });
+    }
+  });
+
+  describe('denial patterns', () => {
+    const shouldDeny = [
+      'n',
+      'N',
+      'no',
+      'NO',
+      'No',
+      'deny',
+      'denied',
+      'reject',
+      'stop',
+      'cancel',
+      'nope',
+      'nah',
+      'block',
+    ];
+
+    for (const response of shouldDeny) {
+      it(`accepts "${response}" as denial`, () => {
+        expect(denialPatterns.test(response)).toBe(true);
+      });
+    }
+  });
+
+  describe('pattern exclusivity', () => {
+    it('approval patterns do not match denial words', () => {
+      expect(approvalPatterns.test('no')).toBe(false);
+      expect(approvalPatterns.test('deny')).toBe(false);
+      expect(approvalPatterns.test('stop')).toBe(false);
+    });
+
+    it('denial patterns do not match approval words', () => {
+      expect(denialPatterns.test('yes')).toBe(false);
+      expect(denialPatterns.test('ok')).toBe(false);
+      expect(denialPatterns.test('continue')).toBe(false);
+    });
+  });
+});
+
 describe('hook scripts use canonical port path (regression tests)', () => {
   // These tests ensure hook scripts read from ~/.config/claude-code-anywhere/port
   // NOT from relative paths like $SCRIPT_DIR/../../port which fail when

@@ -52,16 +52,24 @@ for i in $(seq 1 60); do
   RESP=$(curl -s "$BRIDGE_URL/api/response/${SESSION_ID}" 2>/dev/null)
 
   if echo "$RESP" | grep -q '"response"'; then
-    ANSWER=$(echo "$RESP" | grep -o '"response":"[^"]*"' | cut -d'"' -f4)
+    ANSWER=$(echo "$RESP" | jq -r '.response // ""' | tr '[:upper:]' '[:lower:]')
 
-    if echo "$ANSWER" | grep -qi '^y'; then
+    # Check for approval patterns (flexible matching)
+    if echo "$ANSWER" | grep -qE '^(y|yes|ok|approve|approved|allow|go|continue|sure|yep|yeah|accept|👍|✅)'; then
       # Approved
       exit 0
-    else
+    fi
+
+    # Check for denial patterns
+    if echo "$ANSWER" | grep -qE '^(n|no|deny|denied|reject|stop|cancel|nope|nah|block|👎|❌)'; then
       # Denied
-      echo '{"decision": "block", "reason": "User denied via email"}'
+      echo '{"decision": "block", "reason": "User denied"}'
       exit 0
     fi
+
+    # Unknown response - treat as denial for safety
+    echo "{\"decision\": \"block\", \"reason\": \"Unknown response: $ANSWER\"}"
+    exit 0
   fi
 
   sleep 5
