@@ -29,11 +29,11 @@ See @skills/cca-server/skill.md for implementation details.
 
 ## Installation Status
 
-!`test -x ~/.claude-code-anywhere/bin/claude && echo "GLOBAL" || echo "SESSION_ONLY"`
+Check via: `test -x ~/.claude-code-anywhere/bin/claude && echo "GLOBAL" || echo "SESSION_ONLY"`
 
 ## Current Session ID
 
-!`cat ~/.config/claude-code-anywhere/current-session-id 2>/dev/null || echo "NO_SESSION"`
+Read via: `cat ~/.config/claude-code-anywhere/current-session-id`
 
 ## Usage
 

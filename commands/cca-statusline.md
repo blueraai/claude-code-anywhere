@@ -15,7 +15,7 @@ Add, update, or remove the CCA status indicator from your Claude Code statusline
 
 ## Current Statusline
 
-!`head -30 ~/.claude/statusline.sh 2>/dev/null || echo "NOT_FOUND"`
+Check via: `head -30 ~/.claude/statusline.sh 2>/dev/null || echo "NOT_FOUND"`
 
 ## Usage
 
