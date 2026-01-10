@@ -621,6 +621,31 @@ On first session, a one-time message explains SESSION-ONLY vs GLOBAL modes. To s
 </details>
 
 <details>
+<summary><b>PreToolUse Hook Blocking (Can't Type Commands)</b></summary>
+
+If the PreToolUse approval hook is blocking and you can't interact with Claude (waiting for approval that never comes), use one of these fixes **from a separate terminal**:
+
+**Option 1: Enable global notifications**
+```bash
+PORT=$(cat ~/.config/claude-code-anywhere/port) && curl -s -X POST "http://localhost:$PORT/api/enable"
+```
+
+**Option 2: Edit state file directly**
+```bash
+# Enable global notifications
+sed -i '' 's/"enabled": false/"enabled": true/' ~/.claude/claude-code-anywhere/state.json
+```
+
+**Option 3: Kill the server (disables all hooks)**
+```bash
+pkill -f "bun run server"
+```
+
+**Why this happens:** If global notifications are disabled but session is enabled, and the notification channels (Email/Telegram) aren't working, the hook waits for approval that never arrives. This was fixed in v0.6.22 but may occur if channels are misconfigured.
+
+</details>
+
+<details>
 <summary><b>Global Installation Issues</b></summary>
 
 1. **Daemon not starting:**
