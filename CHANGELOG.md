@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.18](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.17...v0.6.18) (2026-01-10)
+
+
+### Bug Fixes
+
+* **hooks:** flexible approval pattern matching for PreToolUse ([0808530](https://github.com/blueraai/claude-code-anywhere/commit/0808530430a7173e1509588bc5a86a10c630df4f))
+
 ## [0.6.17](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.16...v0.6.17) (2026-01-10)
 
 
