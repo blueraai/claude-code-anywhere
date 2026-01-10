@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.2](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.1...v0.6.2) (2026-01-10)
+
+
+### Bug Fixes
+
+* **statusline:** use visible gray color for inactive indicator ([dad3ef3](https://github.com/blueraai/claude-code-anywhere/commit/dad3ef307de43b2a0aef04c0450d42f0abd1081d))
+
 ## [0.6.1](https://github.com/blueraai/claude-code-anywhere/compare/v0.6.0...v0.6.1) (2026-01-10)
 
 ## [0.6.0](https://github.com/blueraai/claude-code-anywhere/compare/v0.4.9...v0.6.0) (2026-01-10)
