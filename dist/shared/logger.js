@@ -8,24 +8,10 @@ import { appendFileSync, mkdirSync, existsSync, statSync, renameSync, unlinkSync
 import { join } from 'path';
 import { getLogsDir } from './config.js';
 const LOGS_DIR = getLogsDir();
-/**
- * Get required env var or throw
- */
-function getRequiredEnvNumber(name) {
-    const value = process.env[name];
-    if (value === undefined || value === '') {
-        throw new Error(`Required environment variable ${name} is not set`);
-    }
-    const num = parseInt(value, 10);
-    if (isNaN(num)) {
-        throw new Error(`Environment variable ${name} must be a number, got: ${value}`);
-    }
-    return num;
-}
-/** Maximum log file size in bytes */
-const MAX_LOG_SIZE = getRequiredEnvNumber('LOG_MAX_SIZE_MB') * 1024 * 1024;
-/** Number of rotated log files to keep */
-const MAX_ROTATED_FILES = getRequiredEnvNumber('LOG_MAX_ROTATED_FILES');
+/** Maximum log file size in bytes (default 10MB, override with LOG_MAX_SIZE_MB env var) */
+const MAX_LOG_SIZE = parseInt(process.env['LOG_MAX_SIZE_MB'] ?? '10', 10) * 1024 * 1024;
+/** Number of rotated log files to keep (default 5, override with LOG_MAX_ROTATED_FILES env var) */
+const MAX_ROTATED_FILES = parseInt(process.env['LOG_MAX_ROTATED_FILES'] ?? '5', 10);
 /**
  * Get current date formatted as YY-MM-DD
  */

@@ -4,6 +4,9 @@
  * Supports multiple channels: Email (SMTP/IMAP), Telegram
  */
 
+// Load .env file if present (for development)
+import 'dotenv/config';
+
 import { writeFileSync, unlinkSync, mkdirSync, existsSync } from 'fs';
 import { createServer } from 'http';
 import { homedir } from 'os';

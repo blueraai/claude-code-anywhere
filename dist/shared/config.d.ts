@@ -1,14 +1,19 @@
 /**
- * Configuration loading from environment variables
+ * Configuration loading from user config file and environment variables
+ *
+ * Priority order:
+ * 1. User config file (~/.claude/claude-code-anywhere/config.json)
+ * 2. Environment variables (for development/override)
+ * 3. Hardcoded defaults (for operational params only)
  */
 import type { AppConfig, EmailConfig, TelegramConfig, Result } from './types.js';
 /**
- * Load Email configuration from environment variables
+ * Load Email configuration from user config file or environment variables
  */
 export declare function loadEmailConfig(): Result<EmailConfig, string>;
 /**
- * Load Telegram configuration from environment variables
- * Returns success: false if TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing
+ * Load Telegram configuration from user config file or environment variables
+ * Returns success: false if neither source has TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID
  */
 export declare function loadTelegramConfig(): Result<TelegramConfig, string>;
 /**

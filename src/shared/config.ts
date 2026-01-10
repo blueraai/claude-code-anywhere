@@ -1,5 +1,10 @@
 /**
- * Configuration loading from environment variables
+ * Configuration loading from user config file and environment variables
+ *
+ * Priority order:
+ * 1. User config file (~/.claude/claude-code-anywhere/config.json)
+ * 2. Environment variables (for development/override)
+ * 3. Hardcoded defaults (for operational params only)
  */
 
 import {
@@ -10,6 +15,7 @@ import {
   DEFAULT_IMAP_PORT,
   DEFAULT_EMAIL_POLL_INTERVAL_MS,
 } from './constants.js';
+import { loadUserConfig } from './user-config.js';
 import type { AppConfig, EmailConfig, TelegramConfig, Result } from './types.js';
 
 /**
@@ -20,17 +26,22 @@ function isValidEmail(email: string): boolean {
 }
 
 /**
- * Load Email configuration from environment variables
+ * Load Email configuration from user config file or environment variables
  */
 export function loadEmailConfig(): Result<EmailConfig, string> {
-  const user = process.env['EMAIL_USER'];
-  const pass = process.env['EMAIL_PASS'];
-  const recipient = process.env['EMAIL_RECIPIENT'];
+  const userConfig = loadUserConfig();
+
+  // Check user config first
+  const userEmail = userConfig.email;
+  const user = userEmail?.user ?? process.env['EMAIL_USER'];
+  const pass = userEmail?.pass ?? process.env['EMAIL_PASS'];
+  const recipient = userEmail?.recipient ?? process.env['EMAIL_RECIPIENT'];
 
   if (user === undefined || user === '') {
     return {
       success: false,
-      error: 'Missing required environment variable: EMAIL_USER (Gmail address for Claude)',
+      error:
+        'Missing EMAIL_USER: Set in ~/.claude/claude-code-anywhere/config.json or EMAIL_USER env var',
     };
   }
 
@@ -44,14 +55,16 @@ export function loadEmailConfig(): Result<EmailConfig, string> {
   if (pass === undefined || pass === '') {
     return {
       success: false,
-      error: 'Missing required environment variable: EMAIL_PASS (Gmail app password)',
+      error:
+        'Missing EMAIL_PASS: Set in ~/.claude/claude-code-anywhere/config.json or EMAIL_PASS env var',
     };
   }
 
   if (recipient === undefined || recipient === '') {
     return {
       success: false,
-      error: 'Missing required environment variable: EMAIL_RECIPIENT (your email address)',
+      error:
+        'Missing EMAIL_RECIPIENT: Set in ~/.claude/claude-code-anywhere/config.json or EMAIL_RECIPIENT env var',
     };
   }
 
@@ -124,24 +137,30 @@ export function loadEmailConfig(): Result<EmailConfig, string> {
 }
 
 /**
- * Load Telegram configuration from environment variables
- * Returns success: false if TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing
+ * Load Telegram configuration from user config file or environment variables
+ * Returns success: false if neither source has TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID
  */
 export function loadTelegramConfig(): Result<TelegramConfig, string> {
-  const botToken = process.env['TELEGRAM_BOT_TOKEN'];
-  const chatId = process.env['TELEGRAM_CHAT_ID'];
+  const userConfig = loadUserConfig();
+
+  // Check user config first
+  const userTelegram = userConfig.telegram;
+  const botToken = userTelegram?.botToken ?? process.env['TELEGRAM_BOT_TOKEN'];
+  const chatId = userTelegram?.chatId ?? process.env['TELEGRAM_CHAT_ID'];
 
   if (botToken === undefined || botToken === '') {
     return {
       success: false,
-      error: 'Missing required environment variable: TELEGRAM_BOT_TOKEN',
+      error:
+        'Missing TELEGRAM_BOT_TOKEN: Set in ~/.claude/claude-code-anywhere/config.json or TELEGRAM_BOT_TOKEN env var',
     };
   }
 
   if (chatId === undefined || chatId === '') {
     return {
       success: false,
-      error: 'Missing required environment variable: TELEGRAM_CHAT_ID',
+      error:
+        'Missing TELEGRAM_CHAT_ID: Set in ~/.claude/claude-code-anywhere/config.json or TELEGRAM_CHAT_ID env var',
     };
   }
 

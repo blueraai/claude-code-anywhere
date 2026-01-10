@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { existsSync, rmSync } from 'fs';
 import {
   getStateDir,
   getStateFilePath,
   getLogsDir,
   loadAppConfig,
   loadEmailConfig,
+  loadTelegramConfig,
 } from '../src/shared/config.js';
+import { saveUserConfig } from '../src/shared/user-config.js';
 
 describe('config', () => {
   describe('loadEmailConfig', () => {
@@ -332,6 +335,182 @@ describe('config', () => {
       process.env['HOME'] = '/Users/test';
 
       expect(getLogsDir()).toBe('/Users/test/.claude/claude-code-anywhere/logs');
+    });
+  });
+
+  describe('loadTelegramConfig with user config', () => {
+    let originalHome: string | undefined;
+    let originalEnv: Record<string, string | undefined>;
+    const testHome = '/tmp/cca-test-config';
+
+    beforeEach(() => {
+      originalHome = process.env['HOME'];
+      originalEnv = {
+        TELEGRAM_BOT_TOKEN: process.env['TELEGRAM_BOT_TOKEN'],
+        TELEGRAM_CHAT_ID: process.env['TELEGRAM_CHAT_ID'],
+      };
+      process.env['HOME'] = testHome;
+
+      // Clean up test directory
+      if (existsSync(testHome)) {
+        rmSync(testHome, { recursive: true });
+      }
+
+      // Clear env vars
+      delete process.env['TELEGRAM_BOT_TOKEN'];
+      delete process.env['TELEGRAM_CHAT_ID'];
+    });
+
+    afterEach(() => {
+      if (originalHome !== undefined) {
+        process.env['HOME'] = originalHome;
+      } else {
+        delete process.env['HOME'];
+      }
+
+      for (const [key, value] of Object.entries(originalEnv)) {
+        if (value !== undefined) {
+          process.env[key] = value;
+        } else {
+          delete process.env[key];
+        }
+      }
+
+      if (existsSync(testHome)) {
+        rmSync(testHome, { recursive: true });
+      }
+    });
+
+    it('uses user config when available', () => {
+      saveUserConfig({
+        telegram: {
+          botToken: 'user-config-token',
+          chatId: 'user-config-chat',
+        },
+      });
+
+      const result = loadTelegramConfig();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.botToken).toBe('user-config-token');
+        expect(result.data.chatId).toBe('user-config-chat');
+      }
+    });
+
+    it('falls back to env vars when user config empty', () => {
+      process.env['TELEGRAM_BOT_TOKEN'] = 'env-token';
+      process.env['TELEGRAM_CHAT_ID'] = 'env-chat';
+
+      const result = loadTelegramConfig();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.botToken).toBe('env-token');
+        expect(result.data.chatId).toBe('env-chat');
+      }
+    });
+
+    it('user config takes priority over env vars', () => {
+      saveUserConfig({
+        telegram: {
+          botToken: 'user-token',
+          chatId: 'user-chat',
+        },
+      });
+      process.env['TELEGRAM_BOT_TOKEN'] = 'env-token';
+      process.env['TELEGRAM_CHAT_ID'] = 'env-chat';
+
+      const result = loadTelegramConfig();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.botToken).toBe('user-token');
+        expect(result.data.chatId).toBe('user-chat');
+      }
+    });
+
+    it('returns error when neither user config nor env vars are set', () => {
+      const result = loadTelegramConfig();
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('loadEmailConfig with user config', () => {
+    let originalHome: string | undefined;
+    let originalEnv: Record<string, string | undefined>;
+    const testHome = '/tmp/cca-test-config-email';
+
+    beforeEach(() => {
+      originalHome = process.env['HOME'];
+      originalEnv = {
+        EMAIL_USER: process.env['EMAIL_USER'],
+        EMAIL_PASS: process.env['EMAIL_PASS'],
+        EMAIL_RECIPIENT: process.env['EMAIL_RECIPIENT'],
+      };
+      process.env['HOME'] = testHome;
+
+      if (existsSync(testHome)) {
+        rmSync(testHome, { recursive: true });
+      }
+
+      delete process.env['EMAIL_USER'];
+      delete process.env['EMAIL_PASS'];
+      delete process.env['EMAIL_RECIPIENT'];
+    });
+
+    afterEach(() => {
+      if (originalHome !== undefined) {
+        process.env['HOME'] = originalHome;
+      } else {
+        delete process.env['HOME'];
+      }
+
+      for (const [key, value] of Object.entries(originalEnv)) {
+        if (value !== undefined) {
+          process.env[key] = value;
+        } else {
+          delete process.env[key];
+        }
+      }
+
+      if (existsSync(testHome)) {
+        rmSync(testHome, { recursive: true });
+      }
+    });
+
+    it('uses user config when available', () => {
+      saveUserConfig({
+        email: {
+          user: 'userconfig@test.com',
+          pass: 'userconfig-pass',
+          recipient: 'userconfig-recv@test.com',
+        },
+      });
+
+      const result = loadEmailConfig();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.user).toBe('userconfig@test.com');
+        expect(result.data.pass).toBe('userconfig-pass');
+        expect(result.data.recipient).toBe('userconfig-recv@test.com');
+      }
+    });
+
+    it('user config takes priority over env vars', () => {
+      saveUserConfig({
+        email: {
+          user: 'user@config.com',
+          pass: 'user-pass',
+          recipient: 'user-recv@config.com',
+        },
+      });
+      process.env['EMAIL_USER'] = 'env@test.com';
+      process.env['EMAIL_PASS'] = 'env-pass';
+      process.env['EMAIL_RECIPIENT'] = 'env-recv@test.com';
+
+      const result = loadEmailConfig();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.user).toBe('user@config.com');
+      }
     });
   });
 });

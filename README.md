@@ -164,24 +164,23 @@ To enable global mode:
 
 ### 3. Configure Channels
 
-Copy `.env.example` to `.env` and configure:
-- **Session-only mode**: In the plugin directory (where `/plugin add` installed it)
-- **Global mode**: `~/.claude-code-anywhere/plugins/claude-code-anywhere/.env`
+Create `~/.claude/claude-code-anywhere/config.json`:
 
-**Email:**
-```env
-EMAIL_USER=claude-cca@gmail.com       # Dedicated sending account
-EMAIL_PASS=xxxx-xxxx-xxxx-xxxx        # App password (not your main password!)
-EMAIL_RECIPIENT=you@example.com       # Where YOU receive notifications
+```json
+{
+  "telegram": {
+    "botToken": "123456789:ABCdef...",
+    "chatId": "123456789"
+  },
+  "email": {
+    "user": "claude-cca@gmail.com",
+    "pass": "xxxx-xxxx-xxxx-xxxx",
+    "recipient": "you@example.com"
+  }
+}
 ```
 
-**Telegram:**
-```env
-TELEGRAM_BOT_TOKEN=123456789:ABCdef...  # From @BotFather
-TELEGRAM_CHAT_ID=123456789              # Your chat ID
-```
-
-You can configure one or both channels.
+You can configure one or both channels. See [Configuration](#configuration) for details.
 
 ### 4. Enable and Test
 
@@ -500,7 +499,29 @@ Diagnose installation and configuration issues. Especially useful after global i
 
 ## Configuration
 
-### Environment Variables
+### User Config File (Recommended)
+
+For production use, store credentials in `~/.claude/claude-code-anywhere/config.json`:
+
+```json
+{
+  "telegram": {
+    "botToken": "123456789:ABCdefGHIjklMNOpqrsTUVwxyz",
+    "chatId": "123456789"
+  },
+  "email": {
+    "user": "claude-cca@gmail.com",
+    "pass": "xxxx-xxxx-xxxx-xxxx",
+    "recipient": "you@example.com"
+  }
+}
+```
+
+You can configure one or both channels. The config file takes priority over environment variables.
+
+### Environment Variables (Development)
+
+Environment variables can be used for development (via `.env` file) or to override the config file:
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -520,10 +541,10 @@ Diagnose installation and configuration issues. Especially useful after global i
 | `BRIDGE_PORT` | No | dynamic | Bridge server port (auto-selects available) |
 | `BRIDGE_URL` | No | auto | Bridge URL (derived from port) |
 | **Logging** | | | |
-| `LOG_MAX_SIZE_MB` | Yes | - | Max log file size before rotation |
-| `LOG_MAX_ROTATED_FILES` | Yes | - | Number of rotated logs to keep |
+| `LOG_MAX_SIZE_MB` | No | 10 | Max log file size before rotation (MB) |
+| `LOG_MAX_ROTATED_FILES` | No | 5 | Number of rotated logs to keep |
 
-† At least one channel must be fully configured (all † vars for that channel).
+† At least one channel must be fully configured (all † vars for that channel), either via config file or env vars.
 
 ### State File
 
@@ -581,13 +602,10 @@ On first session, a one-time message explains SESSION-ONLY vs GLOBAL modes. To s
 <details>
 <summary><b>Email Not Sending</b></summary>
 
-1. Verify environment variables:
-   ```bash
-   echo $EMAIL_USER $EMAIL_RECIPIENT
-   ```
+1. Verify config file exists: `cat ~/.claude/claude-code-anywhere/config.json`
 2. Ensure you're using an **app password**, not your main password
 3. For Gmail, verify 2FA is enabled
-4. Check logs: `tail -f logs/*.log`
+4. Check logs: `tail -f ~/.claude/claude-code-anywhere/logs/*.log`
 
 </details>
 

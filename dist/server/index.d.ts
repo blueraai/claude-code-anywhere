@@ -3,6 +3,7 @@
  *
  * Supports multiple channels: Email (SMTP/IMAP), Telegram
  */
+import 'dotenv/config';
 /**
  * Bridge server instance
  */
