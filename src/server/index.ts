@@ -98,8 +98,8 @@ export class BridgeServer {
     sessionManager.start();
 
     // Start polling on all channels
-    this.channelManager.startAllPolling((response) => {
-      void this.handleIncomingResponse(response);
+    this.channelManager.startAllPolling(async (response) => {
+      await this.handleIncomingResponse(response);
     });
 
     // Create HTTP server

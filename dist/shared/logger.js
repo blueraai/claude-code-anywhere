@@ -2,16 +2,16 @@
  * Application logging utility
  *
  * Writes logs to both console and file (logs/YY-MM-DD.log)
- * Implements size-based rotation (default 10MB, keeps 5 rotated files)
+ * Implements size-based rotation (configured via LOG_MAX_SIZE_MB and LOG_MAX_ROTATED_FILES env vars)
  */
 import { appendFileSync, mkdirSync, existsSync, statSync, renameSync, unlinkSync, readdirSync, } from 'fs';
 import { join } from 'path';
-import { getLogsDir } from './config.js';
+import { getLogsDir, getRequiredEnvNumber } from './config.js';
 const LOGS_DIR = getLogsDir();
-/** Maximum log file size in bytes (default 10MB, override with LOG_MAX_SIZE_MB env var) */
-const MAX_LOG_SIZE = parseInt(process.env['LOG_MAX_SIZE_MB'] ?? '10', 10) * 1024 * 1024;
-/** Number of rotated log files to keep (default 5, override with LOG_MAX_ROTATED_FILES env var) */
-const MAX_ROTATED_FILES = parseInt(process.env['LOG_MAX_ROTATED_FILES'] ?? '5', 10);
+/** Maximum log file size in bytes (set via LOG_MAX_SIZE_MB env var) */
+const MAX_LOG_SIZE = getRequiredEnvNumber('LOG_MAX_SIZE_MB') * 1024 * 1024;
+/** Number of rotated log files to keep (set via LOG_MAX_ROTATED_FILES env var) */
+const MAX_ROTATED_FILES = getRequiredEnvNumber('LOG_MAX_ROTATED_FILES');
 /**
  * Get current date formatted as YY-MM-DD
  */

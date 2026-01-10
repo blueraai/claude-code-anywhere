@@ -357,7 +357,7 @@ export class EmailClient implements Channel {
               channel: this.name,
             };
             this.lastActivity = Date.now();
-            this.messageCallback(channelResponse);
+            await this.messageCallback(channelResponse);
           } else {
             log.warn('Received email without valid session ID', { from: fromEmail, subject });
           }

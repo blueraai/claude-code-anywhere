@@ -33,4 +33,9 @@ export declare function getStateFilePath(): string;
  * Get the logs directory path (canonical location)
  */
 export declare function getLogsDir(): string;
+/**
+ * Get a required environment variable as a number
+ * @throws ConfigError if the environment variable is not set or not a valid number
+ */
+export declare function getRequiredEnvNumber(name: string): number;
 //# sourceMappingURL=config.d.ts.map

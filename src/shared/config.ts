@@ -235,3 +235,19 @@ export function getStateFilePath(): string {
 export function getLogsDir(): string {
   return `${getStateDir()}/logs`;
 }
+
+/**
+ * Get a required environment variable as a number
+ * @throws ConfigError if the environment variable is not set or not a valid number
+ */
+export function getRequiredEnvNumber(name: string): number {
+  const value = process.env[name];
+  if (value === undefined) {
+    throw new ConfigError(`Required environment variable ${name} is not set`, name);
+  }
+  const num = parseInt(value, 10);
+  if (isNaN(num)) {
+    throw new ConfigError(`Environment variable ${name} must be a number, got: ${value}`, name);
+  }
+  return num;
+}

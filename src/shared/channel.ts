@@ -40,8 +40,9 @@ export interface ChannelStatus {
 
 /**
  * Callback for receiving responses from channels
+ * Async to ensure response is fully processed before email/message deletion
  */
-export type ResponseCallback = (response: ChannelResponse) => void;
+export type ResponseCallback = (response: ChannelResponse) => Promise<void>;
 
 /**
  * Channel interface - all notification channels must implement this

@@ -82,7 +82,7 @@ describe('errors', () => {
     it('sets correct name, message, and path', () => {
       const error = new StateError('Invalid format', '/path/to/state.json');
       expect(error.name).toBe('StateError');
-      expect(error.message).toBe('Invalid format');
+      expect(error.message).toBe('Invalid format at /path/to/state.json');
       expect(error.path).toBe('/path/to/state.json');
     });
 

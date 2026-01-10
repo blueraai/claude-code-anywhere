@@ -374,7 +374,7 @@ export class TelegramClient {
                     channel: this.name,
                 };
                 this.lastActivity = Date.now();
-                this.messageCallback(channelResponse);
+                await this.messageCallback(channelResponse);
             }
             this.lastError = null;
         }
@@ -455,7 +455,7 @@ export class TelegramClient {
             channel: this.name,
         };
         this.lastActivity = Date.now();
-        this.messageCallback(channelResponse);
+        await this.messageCallback(channelResponse);
     }
     /**
      * Acknowledge a callback query (required by Telegram API).

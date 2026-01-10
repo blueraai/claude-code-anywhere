@@ -53,7 +53,7 @@ export class StateError extends Error {
     message: string,
     public readonly path: string
   ) {
-    super(message);
+    super(`${message} at ${path}`);
     this.name = 'StateError';
   }
 }

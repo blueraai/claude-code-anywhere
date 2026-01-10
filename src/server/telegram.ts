@@ -527,7 +527,7 @@ export class TelegramClient implements Channel {
         };
 
         this.lastActivity = Date.now();
-        this.messageCallback(channelResponse);
+        await this.messageCallback(channelResponse);
       }
 
       this.lastError = null;
@@ -616,7 +616,7 @@ export class TelegramClient implements Channel {
     };
 
     this.lastActivity = Date.now();
-    this.messageCallback(channelResponse);
+    await this.messageCallback(channelResponse);
   }
 
   /**

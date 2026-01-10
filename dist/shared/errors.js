@@ -45,7 +45,7 @@ export class MissingConfigError extends ConfigError {
 export class StateError extends Error {
     path;
     constructor(message, path) {
-        super(message);
+        super(`${message} at ${path}`);
         this.path = path;
         this.name = 'StateError';
     }

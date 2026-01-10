@@ -746,6 +746,85 @@ describe('EmailClient - polling error propagation (fail-fast)', () => {
   });
 });
 
+describe('EmailClient - callback must complete before email deletion', () => {
+  let ImapFlowMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(async () => {
+    const imapflowMod = await import('imapflow');
+    ImapFlowMock = vi.mocked(imapflowMod.ImapFlow);
+    ImapFlowMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('awaits async callback before deleting email', async () => {
+    // Track order of operations
+    const operations: string[] = [];
+
+    const messageDeleteMock = vi.fn().mockImplementation(async () => {
+      operations.push('delete');
+    });
+
+    const mockMessages = [
+      {
+        uid: 999,
+        envelope: {
+          messageId: '<race-test@example.com>',
+          subject: '[CC-abc123] Test',
+          from: [{ address: 'user@example.com' }],
+        },
+        bodyParts: new Map([['text', Buffer.from('Reply')]]),
+      },
+    ];
+
+    const createMockFetch = (): AsyncGenerator<(typeof mockMessages)[0]> => {
+      return (async function* (): AsyncGenerator<(typeof mockMessages)[0]> {
+        for (const msg of mockMessages) {
+          yield msg;
+        }
+      })();
+    };
+
+    const mockClient = {
+      connect: vi.fn().mockResolvedValue(undefined),
+      on: vi.fn(),
+      getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+      fetch: vi.fn(() => createMockFetch()),
+      messageDelete: messageDeleteMock,
+      logout: vi.fn().mockResolvedValue(undefined),
+    };
+
+    ImapFlowMock.mockImplementation(function () {
+      return mockClient;
+    });
+
+    const client = new EmailClient(validConfig);
+    await client.initialize();
+
+    // Create an async callback that tracks when it completes
+    const callbackPromise = new Promise<void>((resolve) => {
+      client.startPolling(async () => {
+        // Simulate async work (like storing response to session)
+        await new Promise((r) => setTimeout(r, 30));
+        operations.push('callback_complete');
+        resolve();
+      });
+    });
+
+    // Wait for processing to complete
+    await callbackPromise;
+    await new Promise((r) => setTimeout(r, 50));
+
+    // CRITICAL: callback must complete BEFORE email deletion
+    // If the code doesn't await the callback, 'delete' will appear before 'callback_complete'
+    expect(operations).toEqual(['callback_complete', 'delete']);
+
+    client.dispose();
+  });
+});
+
 describe('EmailClient - email deletion after processing', () => {
   // Helper to wait for async operations to complete
   const flushPromises = (): Promise<void> =>

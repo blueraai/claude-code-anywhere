@@ -4,6 +4,24 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { StateError } from '../src/shared/errors.js';
 
+describe('StateError message includes file path context', () => {
+  it('includes path in error message for easy debugging', () => {
+    const error = new StateError('expected object', '/path/to/state.json');
+
+    // The error message should include the path so when caught and printed,
+    // users know which file had the problem
+    expect(error.message).toContain('/path/to/state.json');
+    expect(error.message).toContain('expected object');
+    expect(error.path).toBe('/path/to/state.json');
+  });
+
+  it('includes path in error message for missing hooks', () => {
+    const error = new StateError('missing hooks object', '/var/data/state.json');
+    expect(error.message).toContain('/var/data/state.json');
+    expect(error.message).toContain('missing hooks object');
+  });
+});
+
 // Mock config to use temp directory
 const testDir = join(tmpdir(), 'claude-code-anywhere-test-' + Date.now());
 const testStateFile = join(testDir, 'state.json');
