@@ -11,16 +11,16 @@ Intelligently inject, update, or remove the notification status indicator in the
 ## Indicator Format
 
 - `CCA` (green \033[32m) when notifications are active (global enabled OR session enabled)
-- `cca` (dim gray \033[90m) when notifications are inactive for this session
+- `cca` (gray \033[38;5;244m) when notifications are inactive for this session
 
 ## Code Block to Inject
 
-Current version: **v1**
+Current version: **v2**
 
 This exact block must be inserted:
 
 ```bash
-# --- claude-code-anywhere status --- v1
+# --- claude-code-anywhere status --- v2
 CCA_STATUS=""
 _CCA_PORT=$(cat ~/.claude-code-anywhere/plugins/claude-code-anywhere/port 2>/dev/null)
 _SESSION_ID=$(cat ~/.config/claude-code-anywhere/current-session-id 2>/dev/null)
@@ -29,10 +29,10 @@ if [ -n "$_CCA_PORT" ] && [ -n "$_SESSION_ID" ]; then
     if [ -n "$_ACTIVE" ]; then
         CCA_STATUS=$(printf " │ \033[32mCCA\033[0m")
     else
-        CCA_STATUS=$(printf " │ \033[90mcca\033[0m")
+        CCA_STATUS=$(printf " │ \033[38;5;244mcca\033[0m")
     fi
 else
-    CCA_STATUS=$(printf " │ \033[90mcca\033[0m")
+    CCA_STATUS=$(printf " │ \033[38;5;244mcca\033[0m")
 fi
 # --- end cca status ---
 ```
@@ -47,10 +47,11 @@ These markers enable clean identification, update, and removal.
 ## Version Detection
 
 The start marker may include a version suffix:
-- `# --- claude-code-anywhere status --- v1` (current version)
+- `# --- claude-code-anywhere status --- v2` (current version)
+- `# --- claude-code-anywhere status --- v1` (old version - invisible gray on dark terminals)
 - `# --- claude-code-anywhere status ---` (old version, no suffix)
 
-When updating, ALWAYS use the versioned marker (`v1`).
+When updating, ALWAYS use the versioned marker (`v2`).
 
 ## Idempotent Update Strategy
 
@@ -70,10 +71,10 @@ The `/statusline on` command is idempotent - safe to run multiple times:
 |-----------|---------|-------------|--------|
 | No | - | 0 | Fresh install: inject block + append to outputs |
 | No | - | 1+ | Partial: inject block, don't duplicate outputs |
-| Yes | v1 | 1 | Up to date: report "already up to date" |
-| Yes | v1 | 0 | Repair: add $CCA_STATUS to outputs |
-| Yes | v1 | 2+ | Repair: remove duplicate refs, keep one |
-| Yes | old/none | any | Update: replace block with v1, fix outputs |
+| Yes | v2 | 1 | Up to date: report "already up to date" |
+| Yes | v2 | 0 | Repair: add $CCA_STATUS to outputs |
+| Yes | v2 | 2+ | Repair: remove duplicate refs, keep one |
+| Yes | v1/old/none | any | Update: replace block with v2, fix outputs |
 | Partial | - | any | Cleanup: remove partial, fresh install |
 
 ### Injection Strategy
